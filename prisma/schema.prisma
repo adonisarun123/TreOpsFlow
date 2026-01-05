@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  role      String   // "Sales", "Ops", "Finance", "Admin"
+  password  String   // Hashed
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  transitions StageTransition[]
+  salesPrograms ProgramCard[] @relation("SalesOwner")
+  opsPrograms   ProgramCard[] @relation("OpsOwner")
+}
+
+model ProgramCard {
+  id            String   @id @default(uuid())
+  programId     String   @unique // e.g., TRB-2024-001
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  currentStage  Int      @default(1) // 1, 2, 3, 4, 5
+
+  // Stage 1 Fields
+  programName             String
+  programType             String?  // "E2E", "Day", "Virtual", "OBL"
+  programDates            String?  // JSON string: ["2024-01-01", "2024-01-02"]
+  programTimings          String?
+  location                String?
+  minPax                  Int?
+  maxPax                  Int?
+  trainingDays            Int?
+  
+  salesPOCId              String?
+  salesOwner              User?    @relation("SalesOwner", fields: [salesPOCId], references: [id])
+  
+  clientPOCName           String?
+  clientPOCPhone          String?
+  clientPOCEmail          String?
+  companyName             String?
+  companyAddress          String?
+  
+  activityType            String?  // "OTS", "OBL", "Custom"
+  activitiesCommitted     String?  // JSON string
+  objectives              String?  // JSON string
+  agendaDocument          String?  // URL/Path
+  
+  deliveryBudget          Float?
+  billingDetails          String?
+  photoVideoCommitment    Boolean  @default(false)
+  
+  venuePOC                String?
+  specialVenueReq         String?
+  
+  opsSPOCId               String?
+  opsOwner                User?    @relation("OpsOwner", fields: [opsSPOCId], references: [id])
+  financeApprovalReceived Boolean  @default(false)
+  financeApprovalEmail    String?  // URL
+  handoverAcceptedByOps   Boolean  @default(false)
+  handoverIssues          String?
+
+  // Stage 2 Fields
+  facilitatorsBlocked     String?  // JSON string: names or IDs
+  helperStaffBlocked      String?  // JSON string
+  transportBlocked        String?
+  agendaWalkthroughDone   Boolean  @default(false)
+  logisticsList           String?  // URL or JSON
+  travelPlanFinalized     Boolean  @default(false)
+  welcomeEmailSent        Boolean  @default(false)
+  allResourcesBlocked     Boolean  @default(false)
+  logisticsListLocked     Boolean  @default(false)
+  prepComplete            Boolean  @default(false)
+
+  // Stage 3 Fields
+  packingCheckDone        Boolean  @default(false)
+  packingOwner            String?
+  setupOnTime             Boolean?
+  activitiesExecuted      String?  // JSON string
+  actualParticipantCount  Int?
+  tripExpenseSheet        String?  // URL
+  photosVideos            String?  // JSON string of URLs
+
+  // Stage 4 Fields
+  googleReviewReceived    Boolean  @default(false)
+  videoTestimonialReceived Boolean @default(false)
+  opsDataManagerUpdated   Boolean  @default(false)
+  expensesBillsSubmitted  Boolean  @default(false)
+  zfdRating               Int?
+  zfdComments             String?
+
+  // Stage 5 Fields
+  closedAt                DateTime?
+  closedBy                String?  // User ID or Name
+  finalNotes              String?
+
+  // Relations
+  transitions StageTransition[]
+}
+
+model StageTransition {
+  id             String   @id @default(uuid())
+  programCardId  String
+  programCard    ProgramCard @relation(fields: [programCardId], references: [id])
+  fromStage      Int
+  toStage        Int
+  transitionedAt DateTime @default(now())
+  transitionedBy String
+  user           User     @relation(fields: [transitionedBy], references: [id])
+  approvalNotes  String?
+}
