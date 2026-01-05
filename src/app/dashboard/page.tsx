@@ -50,7 +50,7 @@ export default async function DashboardPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            programs.map((program) => {
+                            programs.map((program: any) => {
                                 let date = "N/A"
                                 try {
                                     const dates = JSON.parse(program.programDates || "[]")
