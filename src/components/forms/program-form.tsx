@@ -50,7 +50,7 @@ const programFormSchema = z.object({
     // Dates can be complex, let's just stick to a single date or string for MVP complexity reduction if needed,
     // but doc says "Array<Date>". Let's use a simple single date picker for start date for now or handle array manually.
     // Using a single date for simplicity in MVP step 1.
-    programDate: z.date({ required_error: "A date is required." }),
+    programDate: z.date(),
 })
 
 export function ProgramForm() {
