@@ -31,6 +31,17 @@ export default async function DashboardLayout({
                         <Link href="/dashboard/programs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
                             All Programs
                         </Link>
+                        {(session.user as any).role === 'Admin' && (
+                            <Link href="/dashboard/team" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                                Team
+                            </Link>
+                        )}
+                        <Link href="/dashboard/reports" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                            Reports
+                        </Link>
+                        <Link href="/dashboard/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
+                            Settings
+                        </Link>
                     </nav>
 
                     <div className="mt-auto">
