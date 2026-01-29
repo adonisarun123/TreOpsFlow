@@ -1,10 +1,9 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../node_modules/.prisma/client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,6 +22,7 @@ model User {
   transitions StageTransition[]
   salesPrograms ProgramCard[] @relation("SalesOwner")
   opsPrograms   ProgramCard[] @relation("OpsOwner")
+  rejectedPrograms ProgramCard[] @relation("ProgramRejections")
 }
 
 model ProgramCard {
@@ -36,11 +36,14 @@ model ProgramCard {
   programName             String
   programType             String?  // "E2E", "Day", "Virtual", "OBL"
   programDates            String?  // JSON string: ["2024-01-01", "2024-01-02"]
+  isMultiDayEvent         Boolean  @default(false)
   programTimings          String?
   location                String?
   minPax                  Int?
   maxPax                  Int?
   trainingDays            Int?
+  previousEngagement      Boolean  @default(false)
+  previousEngagementNotes String?
   
   salesPOCId              String?
   salesOwner              User?    @relation("SalesOwner", fields: [salesPOCId], references: [id])
@@ -55,6 +58,7 @@ model ProgramCard {
   activitiesCommitted     String?  // JSON string
   objectives              String?  // JSON string
   agendaDocument          String?  // URL/Path
+  objectiveDocuments      String?  // JSON array of file URLs
   
   deliveryBudget          Float?
   billingDetails          String?
@@ -62,6 +66,7 @@ model ProgramCard {
   
   venuePOC                String?
   specialVenueReq         String?
+  eventVendorDetails      String?
   
   opsSPOCId               String?
   opsOwner                User?    @relation("OpsOwner", fields: [opsSPOCId], references: [id])
@@ -70,32 +75,79 @@ model ProgramCard {
   handoverAcceptedByOps   Boolean  @default(false)
   handoverIssues          String?
 
+  // Rejection Tracking
+  rejectionStatus         String?   // "rejected_finance" | "rejected_ops" | null
+  financeRejectionReason  String?
+  opsRejectionReason      String?
+  rejectedBy              String?
+  rejectedAt              DateTime?
+  resubmissionCount       Int       @default(0)
+  lastResubmittedAt       DateTime?
+  rejector                User?     @relation("ProgramRejections", fields: [rejectedBy], references: [id])
+
   // Stage 2 Fields
   facilitatorsBlocked     String?  // JSON string: names or IDs
   helperStaffBlocked      String?  // JSON string
   transportBlocked        String?
   agendaWalkthroughDone   Boolean  @default(false)
+  valueAddsFinalized      String?  // JSON array
+  deliverablesConfirmed   String?  // JSON array
+  gameAvailabilityConfirmed Boolean @default(false)
+  activityAreaConfirmed   Boolean  @default(false)
+  procurementRequired     Boolean  @default(false)
+  procurementDetails      String?
+  welcomeEmailDate        DateTime?
   logisticsList           String?  // URL or JSON
+  logisticsListDocument   String?  // URL
+  travelPlanDocument      String?  // URL
   travelPlanFinalized     Boolean  @default(false)
+  agendaDocumentStage2    String?  // URL
   welcomeEmailSent        Boolean  @default(false)
   allResourcesBlocked     Boolean  @default(false)
   logisticsListLocked     Boolean  @default(false)
   prepComplete            Boolean  @default(false)
 
   // Stage 3 Fields
+  venueReached            Boolean  @default(false)
+  facilitatorsReached     Boolean  @default(false)
+  programCompleted        Boolean  @default(false)
+  deliveryNotes           String?
+  initialExpenseSheet     String?  // URL
   packingCheckDone        Boolean  @default(false)
   packingOwner            String?
+  packingDelays           Boolean  @default(false)
+  packingDelayReason      String?
   setupOnTime             Boolean?
+  setupIssues             String?
   activitiesExecuted      String?  // JSON string
   actualParticipantCount  Int?
+  medicalIssues           Boolean  @default(false)
+  medicalIssueDetails     String?
+  facilitatorRemarks      String?
+  bdLeadGenDone           Boolean  @default(false)
+  bdLeadGenDetails        String?
   tripExpenseSheet        String?  // URL
   photosVideos            String?  // JSON string of URLs
 
   // Stage 4 Fields
+  npsScore                Int?
+  clientFeedback          String?
+  finalInvoiceSubmitted   Boolean  @default(false)
+  vendorPaymentsClear     Boolean  @default(false)
   googleReviewReceived    Boolean  @default(false)
+  googleReviewLink        String?
   videoTestimonialReceived Boolean @default(false)
+  videoTestimonialFile    String?  // URL
+  mediaSharedWithClient   Boolean  @default(false)
   opsDataManagerUpdated   Boolean  @default(false)
+  opsDataManagerLink      String?
   expensesBillsSubmitted  Boolean  @default(false)
+  opsSummaryShared        Boolean  @default(false)
+  unpackingDone           Boolean  @default(false)
+  damageMissingItems      Boolean  @default(false)
+  damageMissingDetails    String?
+  itemsSentForCleaning    Boolean  @default(false)
+  firstAidCheckDone       Boolean  @default(false)
   zfdRating               Int?
   zfdComments             String?
 
@@ -103,6 +155,7 @@ model ProgramCard {
   closedAt                DateTime?
   closedBy                String?  // User ID or Name
   finalNotes              String?
+  locked                  Boolean  @default(false)  // Stage 5 read-only enforcement
 
   // Relations
   transitions StageTransition[]

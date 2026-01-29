@@ -1,9 +1,11 @@
-import { prisma } from "../src/lib/prisma"
-import bcrypt from 'bcryptjs'
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+
+const prisma = new PrismaClient();
 
 async function main() {
-    const password = await bcrypt.hash('password123', 10)
-    const arunPassword = await bcrypt.hash('arun4321', 10)
+    const password = await bcrypt.hash('password123', 10);
+    const arunPassword = await bcrypt.hash('arun4321', 10);
 
     const users = [
         { email: 'admin@trebound.com', name: 'Admin User', role: 'Admin', pwd: password },
@@ -11,7 +13,7 @@ async function main() {
         { email: 'ops@trebound.com', name: 'Ops User', role: 'Ops', pwd: password },
         { email: 'finance@trebound.com', name: 'Finance User', role: 'Finance', pwd: password },
         { email: 'arun@trebound.com', name: 'Arun (Admin)', role: 'Admin', pwd: arunPassword },
-    ]
+    ];
 
     for (const u of users) {
         const user = await prisma.user.upsert({
@@ -26,17 +28,17 @@ async function main() {
                 role: u.role,
                 password: u.pwd,
             },
-        })
-        console.log(`Created user: ${user.email}`)
+        });
+        console.log(`Created user: ${user.email}`);
     }
 }
 
 main()
     .then(async () => {
-        await prisma.$disconnect()
+        await prisma.$disconnect();
     })
     .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+        console.error(e);
+        await prisma.$disconnect();
+        process.exit(1);
+    });

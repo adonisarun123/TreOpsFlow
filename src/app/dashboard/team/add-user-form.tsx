@@ -9,6 +9,7 @@ import { useState } from "react"
 import { createUser } from "@/app/actions/admin"
 import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { showToast } from "@/components/ui/toaster"
 
 export function AddUserForm() {
     const [open, setOpen] = useState(false)
@@ -28,8 +29,9 @@ export function AddUserForm() {
 
         const result = await createUser(data)
         if (result.error) {
-            alert(result.error)
+            showToast(result.error, "error")
         } else {
+            showToast("User created successfully", "success")
             setOpen(false)
             router.refresh()
         }

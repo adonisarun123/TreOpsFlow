@@ -1,0 +1,65 @@
+﻿
+> trebound-workflow@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  ┬╖ serverActions
+
+node.exe : ΓÜá The "middleware" 
+file convention is deprecated. 
+Please use "proxy" instead. 
+Learn more: https://nextjs.org/do
+cs/messages/middleware-to-proxy
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo          : No 
+   tSpecified: (ΓÜá The "middle  
+  ...leware-to-proxy:String) [   
+ ], RemoteException
+    + FullyQualifiedErrorId : Na 
+   tiveCommandError
+ 
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 20.1s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/handover-actions
+.tsx:59:24
+Type error: Property 'details' 
+does not exist on type '{ 
+success: boolean; error: string; 
+}'.
+
+[0m [90m 57 |[39m         
+[36mif[39m 
+(result[33m.[39merror) {
+ [90m 58 |[39m             show
+Toast(result[33m.[39merror[33m
+,[39m [32m"error"[39m)
+[31m[1m>[22m[39m[90m 59 
+|[39m             [36mif[39m 
+(result[33m.[39mdetails 
+[33m&&[39m result[33m.[39mdet
+ails[33m.[39mlength 
+[33m>[39m [35m0[39m) {
+ [90m    |[39m                 
+       [31m[1m^[22m[39m
+ [90m 60 |[39m                 
+result[33m.[39mdetails[33m.[3
+9mforEach(detail [33m=>[39m {
+ [90m 61 |[39m                 
+    showToast(detail[33m,[39m 
+[32m"error"[39m)
+ [90m 62 |[39m                 
+})[0m
+Next.js build worker exited with 
+code: 1 and signal: null

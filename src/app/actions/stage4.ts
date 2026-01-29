@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
+import { sendEmail } from "@/lib/email"
+import { programClosedEmail } from "@/lib/email-templates"
 import { z } from "zod"
 
 export async function updateStage4(id: string, data: any) {
@@ -15,10 +17,17 @@ export async function updateStage4(id: string, data: any) {
         await prisma.programCard.update({
             where: { id },
             data: {
-                npsScore: data.npsScore ? parseInt(data.npsScore) : undefined,
+                npsScore: data.npsScore,
                 clientFeedback: data.clientFeedback,
                 finalInvoiceSubmitted: data.finalInvoiceSubmitted,
-                vendorPaymentsClear: data.vendorPaymentsClear
+                vendorPaymentsClear: data.vendorPaymentsClear,
+                googleReviewLink: data.googleReviewLink,
+                videoTestimonialFile: data.videoTestimonialFile,
+                opsDataManagerLink: data.opsDataManagerLink,
+                zfdRating: data.zfdRating,
+                zfdComments: data.zfdComments,
+                expensesBillsSubmitted: data.expensesBillsSubmitted,
+                opsDataManagerUpdated: data.opsDataManagerUpdated,
             }
         })
         revalidatePath(`/dashboard/programs/${id}`)
@@ -31,6 +40,7 @@ export async function updateStage4(id: string, data: any) {
 export async function moveToStage5(id: string) {
     const session = await auth()
     const userRole = (session?.user as any).role
+    const userId = (session?.user as any).id
 
     // Only Admin or "Finance" should technically close, but sticking to Ops flow as per previous stages, or maybe add Finance check.
     // For simplicity: Ops/Admin can close if criteria met.
@@ -38,16 +48,73 @@ export async function moveToStage5(id: string) {
 
     const program = await prisma.programCard.findUnique({ where: { id } })
 
-    // Exit criteria
-    if (program?.npsScore === null || program?.npsScore === undefined) return { error: "NPS Score is required." }
-    if (!program?.clientFeedback) return { error: "Client Feedback is required." }
-    if (!program?.finalInvoiceSubmitted) return { error: "Final Invoice must be submitted." }
+    if (!program) return { error: "Program not found" }
+
+    // Stage 4 → Stage 5 Exit Criteria
+    const errors: string[] = []
+
+    // ZFD Rating is MANDATORY (not NPS)
+    if (program.zfdRating === null || program.zfdRating === undefined) {
+        errors.push("ZFD rating is required (1-5)")
+    } else if (program.zfdRating < 1 || program.zfdRating > 5) {
+        errors.push("ZFD rating must be between 1 and 5")
+    } else if (program.zfdRating <= 3 && (!program.zfdComments || program.zfdComments.length < 10)) {
+        errors.push("Comments mandatory for ratings ≤3 (minimum 10 characters)")
+    }
+
+    if (!program.expensesBillsSubmitted) errors.push("Expenses must be submitted")
+    if (!program.opsDataManagerUpdated) errors.push("Ops data must be updated")
+
+    if (errors.length > 0) {
+        return { error: "Cannot close program", details: errors }
+    }
 
     try {
-        await prisma.programCard.update({
+        const updatedProgram = await prisma.programCard.update({
             where: { id },
-            data: { currentStage: 5 } // 5 = Done
+            data: {
+                currentStage: 5,
+                locked: true, // Stage 5 read-only enforcement
+                closedAt: new Date(),
+                closedBy: userId
+            },
+            include: {
+                salesOwner: true,
+                opsOwner: true
+            }
         })
+
+        // Send closure emails to all stakeholders
+        try {
+            const recipients: string[] = []
+            if (updatedProgram.salesOwner?.email) recipients.push(updatedProgram.salesOwner.email)
+            if (updatedProgram.opsOwner?.email) recipients.push(updatedProgram.opsOwner.email)
+
+            // Add finance team
+            const financeUsers = await prisma.user.findMany({
+                where: { role: { in: ['Finance', 'Admin'] } }
+            })
+            financeUsers.forEach(u => {
+                if (u.email && !recipients.includes(u.email)) {
+                    recipients.push(u.email)
+                }
+            })
+
+            if (recipients.length > 0) {
+                await sendEmail({
+                    to: recipients,
+                    ...programClosedEmail({
+                        id: updatedProgram.id,
+                        programName: updatedProgram.programName,
+                        programId: updatedProgram.programId,
+                        clientName: updatedProgram.companyName || 'Client',
+                        zfdRating: updatedProgram.zfdRating || 0,
+                    })
+                })
+            }
+        } catch (emailError) {
+            console.error('Program closure email failed:', emailError)
+        }
 
         await prisma.stageTransition.create({
             data: {
@@ -55,7 +122,7 @@ export async function moveToStage5(id: string) {
                 fromStage: 4,
                 toStage: 5,
                 transitionedBy: (session?.user as any).id,
-                approvalNotes: "Program Closed. Feedback recorded."
+                approvalNotes: `Program Closed. ZFD Rating: ${program.zfdRating}/5`
             }
         })
 

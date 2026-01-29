@@ -6,8 +6,11 @@ import { Badge } from "@/components/ui/badge"
 export function ProgramDetailsView({ program }: { program: any }) {
     let date = "N/A"
     try {
-        const dates = JSON.parse(program.programDates || "[]")
-        if (dates.length > 0) date = new Date(dates[0]).toLocaleDateString()
+        if (program.programDates) {
+            // programDates is now a formatted string like "Jan 23, 2026" or "Jan 23, 2026 - Jan 25, 2026"
+            // Just display it directly
+            date = program.programDates
+        }
     } catch (e) { }
 
     return (
@@ -74,7 +77,7 @@ export function ProgramDetailsView({ program }: { program: any }) {
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-500">Finance Approval:</span>
-                        <Badge variant={program.financeApprovalReceived ? "success" : "destructive"}>
+                        <Badge variant={program.financeApprovalReceived ? "default" : "destructive"}>
                             {program.financeApprovalReceived ? "Approved" : "Pending"}
                         </Badge>
                     </div>
@@ -96,7 +99,7 @@ export function ProgramDetailsView({ program }: { program: any }) {
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-500">Handover Status:</span>
-                        <Badge variant={program.handoverAcceptedByOps ? "success" : "secondary"}>
+                        <Badge variant={program.handoverAcceptedByOps ? "default" : "secondary"}>
                             {program.handoverAcceptedByOps ? "Accepted" : "Pending"}
                         </Badge>
                     </div>

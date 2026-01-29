@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { showToast } from "@/components/ui/toaster"
 import {
     Form,
     FormControl,
@@ -88,14 +89,14 @@ export function ProgramForm() {
             const result = await createProgram(payload)
 
             if (result.error) {
-                // Show error (toast)
-                alert(result.error)
+                showToast(result.error, "error")
             } else {
+                showToast("Program created! Redirecting...", "success")
                 router.push(`/dashboard/programs/${result.programId}`)
             }
         } catch (error) {
             console.error(error)
-            alert("Something went wrong")
+            showToast("Something went wrong", "error")
         } finally {
             setIsLoading(false)
         }

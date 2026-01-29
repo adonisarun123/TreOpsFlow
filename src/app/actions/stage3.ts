@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
+import { sendEmail } from "@/lib/email"
+import { stageCompletedEmail } from "@/lib/email-templates"
 import { z } from "zod"
 
 const Stage3Schema = z.object({
@@ -30,7 +32,15 @@ export async function updateStage3(id: string, data: any) {
                 facilitatorsReached: data.facilitatorsReached,
                 programCompleted: data.programCompleted,
                 deliveryNotes: data.deliveryNotes,
-                initialExpenseSheet: data.initialExpenseSheet
+                initialExpenseSheet: data.initialExpenseSheet,
+                tripExpenseSheet: data.tripExpenseSheet,
+                packingCheckDone: data.packingCheckDone,
+                actualParticipantCount: data.actualParticipantCount,
+                medicalIssues: data.medicalIssues,
+                medicalIssueDetails: data.medicalIssuesDetails, // Form uses plural, DB uses singular
+                facilitatorRemarks: data.facilitatorRemarks,
+                bdLeadGenDone: data.bdLeadGenDone,
+                activitiesExecuted: data.activitiesExecuted,
             }
         })
         revalidatePath(`/dashboard/programs/${id}`)
@@ -48,9 +58,24 @@ export async function moveToStage4(id: string) {
 
     const program = await prisma.programCard.findUnique({ where: { id } })
 
-    // Exit criteria check
-    if (!program?.programCompleted) return { error: "Program must be marked as completed." }
-    if (!program?.initialExpenseSheet) return { error: "Initial expense sheet must be uploaded." }
+    if (!program) {
+        return { error: "Program not found" }
+    }
+
+    // Stage 3 → Stage 4 Exit Criteria
+    const errors: string[] = []
+
+    if (!program.tripExpenseSheet) {
+        errors.push("Trip expense sheet must be uploaded (mandatory)")
+    }
+
+    if (!program.packingCheckDone) {
+        errors.push("Packing checklist must be completed")
+    }
+
+    if (errors.length > 0) {
+        return { error: "Cannot progress to Stage 4", details: errors }
+    }
 
     try {
         await prisma.programCard.update({
@@ -58,13 +83,37 @@ export async function moveToStage4(id: string) {
             data: { currentStage: 4 }
         })
 
+        // Send email to Ops Owner
+        try {
+            const updatedProgram = await prisma.programCard.findUnique({
+                where: { id },
+                include: { opsOwner: true }
+            })
+
+            if (updatedProgram?.opsOwner?.email) {
+                await sendEmail({
+                    to: updatedProgram.opsOwner.email,
+                    ...stageCompletedEmail({
+                        id: updatedProgram.id,
+                        programName: updatedProgram.programName,
+                        programId: updatedProgram.programId,
+                        opsOwnerName: updatedProgram.opsOwner.name || 'Ops Team',
+                        completedStage: 3,
+                        nextStage: 4,
+                    })
+                })
+            }
+        } catch (emailError) {
+            console.error('Stage 3 completion email failed:', emailError)
+        }
+
         await prisma.stageTransition.create({
             data: {
                 programCardId: id,
                 fromStage: 3,
                 toStage: 4,
                 transitionedBy: (session?.user as any).id,
-                approvalNotes: "Delivery complete. Moved to Post-Delivery."
+                approvalNotes: "Delivery complete. Trip expense sheet submitted."
             }
         })
 
