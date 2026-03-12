@@ -39,7 +39,19 @@ const stage3Schema = z.object({
     activitiesExecuted: z.string().optional(),
 })
 
-export function Stage3Form({ program, isReadOnly = false }: { program: any, isReadOnly?: boolean }) {
+interface Stage3FormProps {
+    program: any
+    isReadOnly?: boolean
+    onSuccess?: () => void
+    isTransitioningToThisStage?: boolean
+}
+
+export function Stage3Form({
+    program,
+    isReadOnly = false,
+    onSuccess,
+    isTransitioningToThisStage = false
+}: Stage3FormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
     const router = useRouter()
@@ -71,7 +83,11 @@ export function Stage3Form({ program, isReadOnly = false }: { program: any, isRe
                 showToast(`Error: ${result.error}`, "error")
             } else {
                 showToast("Saved successfully", "success")
-                router.refresh()
+                if (onSuccess) {
+                    onSuccess()
+                } else {
+                    router.refresh()
+                }
             }
         } catch (error: any) {
             const errorMsg = error?.message || error?.toString() || "Failed to save"
@@ -344,15 +360,24 @@ export function Stage3Form({ program, isReadOnly = false }: { program: any, isRe
 
                 {!isReadOnly && (
                     <div className="flex justify-end gap-4 pt-4 border-t">
-                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
-                            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                            Save Progress
-                        </Button>
+                        {isTransitioningToThisStage ? (
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                                Move to Stage 3
+                            </Button>
+                        ) : (
+                            <>
+                                <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
+                                    {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                    Save Progress
+                                </Button>
 
-                        <Button type="button" onClick={onCompleteStage} disabled={isLoading || isTransitioning || !form.getValues('programCompleted') || !form.getValues('initialExpenseSheet')}>
-                            {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-                            Complete Stage 3
-                        </Button>
+                                <Button type="button" onClick={onCompleteStage} disabled={isLoading || isTransitioning || !form.getValues('programCompleted') || !form.getValues('initialExpenseSheet')}>
+                                    {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                                    Complete Stage 3
+                                </Button>
+                            </>
+                        )}
                     </div>
                 )}
             </form>

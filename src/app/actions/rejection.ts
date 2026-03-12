@@ -215,13 +215,28 @@ export async function resubmitProgram(programId: string) {
 
 /**
  * Get pending approvals count and list for Finance/Ops users
+ * Now supports simultaneous review: Ops sees all Stage 1 programs
  */
 export async function getPendingApprovals(userRole: string) {
     try {
-        let programs: any[]
+        let programs: any[] = []
 
-        if (userRole === 'Finance' || userRole === 'Admin') {
-            // Finance: Programs in Stage 1 without approval and not rejected
+        if (userRole === 'Admin') {
+            // Admin sees ALL programs in Stage 1 that need either Finance or Ops action
+            programs = await prisma.programCard.findMany({
+                where: {
+                    currentStage: 1,
+                    OR: [
+                        { financeApprovalReceived: false },
+                        { handoverAcceptedByOps: false },
+                    ],
+                    rejectionStatus: null,
+                },
+                include: { salesOwner: true },
+                orderBy: { createdAt: 'desc' },
+            })
+        } else if (userRole === 'Finance') {
+            // Finance: Programs in Stage 1 without approval and not rejected by finance
             programs = await prisma.programCard.findMany({
                 where: {
                     currentStage: 1,
@@ -231,34 +246,23 @@ export async function getPendingApprovals(userRole: string) {
                         { rejectionStatus: { not: 'rejected_finance' } }
                     ]
                 },
-                include: {
-                    salesOwner: true
-                },
-                orderBy: {
-                    createdAt: 'desc'
-                }
+                include: { salesOwner: true },
+                orderBy: { createdAt: 'desc' },
             })
         } else if (userRole === 'Ops') {
-            // Ops: Programs with Finance approval but no handover acceptance and not rejected
+            // Ops: ALL programs in Stage 1 that haven't been rejected by ops
+            // (simultaneous review — no longer requires Finance approval first)
             programs = await prisma.programCard.findMany({
                 where: {
-                    financeApprovalReceived: true,
-                    handoverAcceptedByOps: false,
                     currentStage: 1,
                     OR: [
                         { rejectionStatus: null },
                         { rejectionStatus: { not: 'rejected_ops' } }
                     ]
                 },
-                include: {
-                    salesOwner: true
-                },
-                orderBy: {
-                    createdAt: 'desc'
-                }
+                include: { salesOwner: true },
+                orderBy: { createdAt: 'desc' },
             })
-        } else {
-            programs = []
         }
 
         return {
@@ -276,3 +280,77 @@ export async function getPendingApprovals(userRole: string) {
         }
     }
 }
+
+/**
+ * Ops rejects handover in Stage 2 (Accepted Handover) — returns to Stage 1
+ */
+export async function rejectOpsInStage2(programId: string, reason: string) {
+    const session = await auth()
+    const userRole = (session?.user as any)?.role
+    const userId = (session?.user as any)?.id
+
+    if (userRole !== 'Ops' && userRole !== 'Admin') {
+        return { success: false, error: "Unauthorized - Ops role required" }
+    }
+
+    if (!reason || reason.trim().length < 10) {
+        return { success: false, error: "Rejection reason must be at least 10 characters" }
+    }
+
+    try {
+        const program = await prisma.programCard.update({
+            where: { id: programId },
+            data: {
+                rejectionStatus: 'rejected_ops',
+                opsRejectInAccepted: true,
+                opsRejectInAcceptedReason: reason.trim(),
+                opsRejectionReason: reason.trim(),
+                rejectedBy: userId,
+                rejectedAt: new Date(),
+                handoverAcceptedByOps: false,
+                currentStage: 1, // Return to Tentative Handover
+                financeApprovalReceived: false, // Reset finance approval
+            },
+            include: {
+                salesOwner: true
+            }
+        })
+
+        // Record the stage transition
+        await prisma.stageTransition.create({
+            data: {
+                programCardId: programId,
+                fromStage: 2,
+                toStage: 1,
+                transitionedBy: userId,
+                approvalNotes: `Rejected by Ops in Accepted Handover: ${reason.trim()}`
+            }
+        })
+
+        // Send email to Sales Owner
+        try {
+            if (program.salesOwner?.email) {
+                await sendEmail({
+                    to: program.salesOwner.email,
+                    ...opsRejectedEmail({
+                        id: program.id,
+                        programName: program.programName,
+                        programId: program.programId,
+                        salesOwnerName: program.salesOwner.name || 'Sales Owner',
+                        rejectionReason: reason.trim(),
+                    })
+                })
+            }
+        } catch (emailError) {
+            console.error('Stage 2 Ops rejection email failed:', emailError)
+        }
+
+        revalidatePath(`/dashboard/programs/${programId}`)
+        revalidatePath('/dashboard')
+        return { success: true }
+    } catch (error) {
+        console.error('Stage 2 Ops rejection error:', error)
+        return { success: false, error: "Failed to reject handover" }
+    }
+}
+

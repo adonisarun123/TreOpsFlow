@@ -59,6 +59,14 @@ export async function createProgram(data: any) {
                 billingDetails: data.billingDetails,
                 photoVideoCommitment: data.photoVideoCommitment || false,
 
+                // Budget Categorization
+                budgetVenue: data.budgetVenue ? parseFloat(data.budgetVenue) : null,
+                budgetTransport: data.budgetTransport ? parseFloat(data.budgetTransport) : null,
+                budgetActivities: data.budgetActivities ? parseFloat(data.budgetActivities) : null,
+                budgetFood: data.budgetFood ? parseFloat(data.budgetFood) : null,
+                budgetMiscellaneous: data.budgetMiscellaneous ? parseFloat(data.budgetMiscellaneous) : null,
+                budgetNotes: data.budgetNotes,
+
                 // Logistics
                 venuePOC: data.venuePOC,
                 specialVenueReq: data.specialVenueReq,
@@ -103,6 +111,27 @@ export async function createProgram(data: any) {
                             programName: data.programName,
                             programId: program.programId,
                             salesOwnerName: salesOwner.name || 'Sales Owner',
+                            budget: data.deliveryBudget ? parseFloat(data.deliveryBudget) : 0,
+                        })
+                    })
+                }
+
+                // Also notify Ops team simultaneously
+                const opsUsers = await prisma.user.findMany({
+                    where: { role: { in: ['Ops', 'Admin'] } }
+                })
+                const opsEmails = opsUsers.map(u => u.email).filter(Boolean)
+
+                if (opsEmails.length > 0) {
+                    await sendEmail({
+                        to: opsEmails,
+                        ...programCreatedEmail({
+                            id: program.id,
+                            programName: data.programName,
+                            programId: program.programId,
+                            salesOwnerName: salesOwner.name || 'Sales Owner',
+                            clientName: data.companyName,
+                            location: data.location,
                             budget: data.deliveryBudget ? parseFloat(data.deliveryBudget) : 0,
                         })
                     })
@@ -162,6 +191,14 @@ export async function updateStage1(id: string, data: any) {
                 deliveryBudget: data.deliveryBudget ? parseFloat(data.deliveryBudget) : null,
                 billingDetails: data.billingDetails,
                 photoVideoCommitment: data.photoVideoCommitment || false,
+
+                // Budget Categorization
+                budgetVenue: data.budgetVenue ? parseFloat(data.budgetVenue) : null,
+                budgetTransport: data.budgetTransport ? parseFloat(data.budgetTransport) : null,
+                budgetActivities: data.budgetActivities ? parseFloat(data.budgetActivities) : null,
+                budgetFood: data.budgetFood ? parseFloat(data.budgetFood) : null,
+                budgetMiscellaneous: data.budgetMiscellaneous ? parseFloat(data.budgetMiscellaneous) : null,
+                budgetNotes: data.budgetNotes,
 
                 // Logistics
                 venuePOC: data.venuePOC,

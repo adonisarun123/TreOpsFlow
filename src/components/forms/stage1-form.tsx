@@ -79,6 +79,14 @@ const stage1Schema = z.object({
     billingDetails: z.string().optional(),
     photoVideoCommitment: z.boolean().default(false),
 
+    // Budget Categorization
+    budgetVenue: z.coerce.number().optional(),
+    budgetTransport: z.coerce.number().optional(),
+    budgetActivities: z.coerce.number().optional(),
+    budgetFood: z.coerce.number().optional(),
+    budgetMiscellaneous: z.coerce.number().optional(),
+    budgetNotes: z.string().optional(),
+
     // Logistics
     venuePOC: z.string().optional(),
     specialVenueReq: z.string().optional(),
@@ -110,7 +118,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
             location: program?.location || '',
             minPax: program?.minPax ?? 1,
             maxPax: program?.maxPax ?? 50,
-            trainingDays: program?.trainingDays ?? undefined,
+            trainingDays: program?.trainingDays ?? '',
 
             companyName: program?.companyName || '',
             companyAddress: program?.companyAddress || '',
@@ -123,9 +131,16 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
             activityType: program?.activityType || '',
             activitiesCommitted: program?.activitiesCommitted || '',
             objectives: program?.objectives || '',
-            deliveryBudget: program?.deliveryBudget ?? undefined,
+            deliveryBudget: program?.deliveryBudget ?? '',
             billingDetails: program?.billingDetails || '',
             photoVideoCommitment: program?.photoVideoCommitment || false,
+
+            budgetVenue: program?.budgetVenue ?? '',
+            budgetTransport: program?.budgetTransport ?? '',
+            budgetActivities: program?.budgetActivities ?? '',
+            budgetFood: program?.budgetFood ?? '',
+            budgetMiscellaneous: program?.budgetMiscellaneous ?? '',
+            budgetNotes: program?.budgetNotes || '',
 
             venuePOC: program?.venuePOC || '',
             specialVenueReq: program?.specialVenueReq || '',
@@ -203,29 +218,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
             form.setValue('programDates', '')
             setDateRange(undefined)
         }
-    })
-
-    // Auto-set or calculate training days based on event type
-    useEffect(() => {
-        if (!isMultiDay) {
-            // Single-day event: always 1 day
-            form.setValue('trainingDays', 1)
-        } else if (isMultiDay && programDates && programDates.includes(' - ')) {
-            // Multi-day event: calculate from date range
-            try {
-                const [startStr, endStr] = programDates.split(' - ')
-                const start = new Date(startStr)
-                const end = new Date(endStr)
-                if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-                    const diffTime = Math.abs(end.getTime() - start.getTime())
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-                    form.setValue('trainingDays', diffDays)
-                }
-            } catch (e) {
-                // Ignore parsing errors
-            }
-        }
-    }, [programDates, isMultiDay, form])
+    }, [isMultiDay, programDates, form])
 
     // Validate time range
     const isTimeRangeValid = () => {
@@ -274,6 +267,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                             <SelectItem value="Leadership Development">Leadership Development</SelectItem>
                                             <SelectItem value="Training Workshop">Training Workshop</SelectItem>
                                             <SelectItem value="Corporate Outing">Corporate Outing</SelectItem>
+                                            <SelectItem value="End to End">End to End</SelectItem>
+                                            <SelectItem value="Events">Events</SelectItem>
                                             <SelectItem value="Other">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -473,20 +468,18 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="trainingDays"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Training Days</FormLabel>
+                                    <FormLabel>Training / Activity Days</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
                                             min="1"
-                                            placeholder="Auto-calculated"
+                                            placeholder="Enter number of activity days"
                                             value={field.value ?? ''}
                                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                                            disabled={true}
-                                            className="bg-muted"
                                         />
                                     </FormControl>
                                     <FormDescription className="text-xs">
-                                        {isMultiDay ? 'Auto-calculated from date range' : 'Auto-set to 1 for single-day events'}
+                                        Enter the actual number of activity/training days (may differ from event duration)
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -769,6 +762,126 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                     </div>
                 </div>
 
+                {/* Section 3.5: Budget Categorization */}
+                <div className="border p-6 rounded-md bg-white">
+                    <h3 className="text-xl font-semibold mb-4 text-teal-800">Budget Categorization</h3>
+                    <p className="text-sm text-gray-500 mb-4">Break down the delivery budget by category — helps Finance understand spending allocation.</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="budgetVenue"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Venue (₹)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g., 50000"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="budgetTransport"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Transport (₹)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g., 20000"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="budgetActivities"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Activities (₹)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g., 40000"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="budgetFood"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Food & Beverages (₹)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g., 30000"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="budgetMiscellaneous"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Miscellaneous (₹)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g., 10000"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    <div className="mt-4">
+                        <FormField
+                            control={form.control}
+                            name="budgetNotes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Budget Notes</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Additional details about spending allocation..." className="h-20" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+
                 {/* Section 4: Logistics & Venue */}
                 <div className="border p-6 rounded-md bg-white">
                     <h3 className="text-xl font-semibold mb-4 text-orange-800">Logistics & Venue</h3>
@@ -828,7 +941,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="agendaDocument"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Agenda Document ⚠️</FormLabel>
+                                    <FormLabel>Agenda Document (Optional)</FormLabel>
                                     <FormControl>
                                         <FileUpload
                                             onUploadComplete={field.onChange}
@@ -836,8 +949,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                             label="Upload Agenda"
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-red-600 font-medium">
-                                        Required for handover to Ops
+                                    <FormDescription className="text-xs text-gray-500">
+                                        Can be uploaded later — agenda is sometimes finalized a day before the program
                                     </FormDescription>
                                     {field.value && (
                                         <a href={field.value} target="_blank" className="text-sm text-blue-600 underline block mt-2">View File</a>

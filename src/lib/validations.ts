@@ -1,6 +1,12 @@
 /**
  * Validation utilities for Trebound Workflow
- * Based on workflow documentation specifications
+ * Updated for 6-stage pipeline:
+ *   1: Tentative Handover
+ *   2: Accepted Handover
+ *   3: Feasibility Check & Preps
+ *   4: Delivery
+ *   5: Post Trip Closure
+ *   6: Done
  */
 
 // Email validation
@@ -71,34 +77,18 @@ export interface ValidationResult {
 }
 
 /**
- * STAGE 1 → STAGE 2 EXIT CRITERIA
- * User can only complete Stage 1 (handover) if:
- * - Ops SPOC assigned
- * - Finance approval received (if financeApprovalRequired)
- * - Ops acceptance confirmed
- * - Agenda document uploaded
+ * STAGE 1 → STAGE 2 EXIT CRITERIA  (Tentative Handover → Accepted Handover)
+ * Triggered when Finance approves budget. Requirements:
+ * - Finance approval received
+ * Note: Agenda document is optional at this stage
+ * Note: Ops SPOC is no longer required before Finance approval
  */
 export const canProgressFromStage1 = (program: any): ValidationResult => {
     const errors: string[] = [];
 
-    // Ops SPOC must be assigned
-    if (!program.opsSPOCId) {
-        errors.push("Ops SPOC must be assigned before handover");
-    }
-
-    // Finance approval (if required)
-    if (program.financeApprovalRequired && !program.financeApprovalReceived) {
-        errors.push("Finance approval required before handover");
-    }
-
-    // Ops acceptance
-    if (!program.handoverAcceptedByOps) {
-        errors.push("Ops team must accept the program before handover");
-    }
-
-    // Agenda document uploaded
-    if (!program.agendaDocument) {
-        errors.push("Agenda document must be uploaded before handover");
+    // Finance approval required
+    if (!program.financeApprovalReceived) {
+        errors.push("Finance approval required before moving to Accepted Handover");
     }
 
     return {
@@ -108,33 +98,28 @@ export const canProgressFromStage1 = (program: any): ValidationResult => {
 };
 
 /**
- * STAGE 2 → STAGE 3 EXIT CRITERIA
- * - All resources blocked (checkbox)
- * - Logistics list locked (checkbox)
- * - Prep complete (checkbox)
- * - At least 1 facilitator must be blocked
+ * STAGE 2 → STAGE 3 EXIT CRITERIA  (Accepted Handover → Feasibility Check & Preps)
+ * - Ops SPOC assigned (dropdown selection)
+ * - Handover checklist completed
+ * - Meeting with Sales POC done
+ * - Handover accepted by Ops
  */
 export const canProgressFromStage2 = (program: any): ValidationResult => {
     const errors: string[] = [];
 
-    // All resources blocked
-    if (!program.allResourcesBlocked) {
-        errors.push("All resources must be blocked before moving to delivery");
+    // Ops SPOC must be assigned
+    if (!program.opsSPOCAssignedName) {
+        errors.push("Ops SPOC must be assigned (select from dropdown)");
     }
 
-    // Logistics list locked
-    if (!program.logisticsListLocked) {
-        errors.push("Logistics list must be locked");
+    // Handover checklist must be completed
+    if (!program.handoverChecklistCompleted) {
+        errors.push("Handover acceptance checklist must be completed");
     }
 
-    // Prep complete
-    if (!program.prepComplete) {
-        errors.push("Preparation must be marked as complete");
-    }
-
-    // At least one facilitator blocked
-    if (!program.facilitatorsBlocked || program.facilitatorsBlocked.trim() === '') {
-        errors.push("At least one facilitator must be assigned and blocked");
+    // Meeting with Sales POC
+    if (!program.meetingWithSalesDone) {
+        errors.push("Meeting with Sales POC must be completed (call & understand deliverables)");
     }
 
     return {
@@ -144,27 +129,35 @@ export const canProgressFromStage2 = (program: any): ValidationResult => {
 };
 
 /**
- * STAGE 3 → STAGE 4 EXIT CRITERIA
- * - Trip expense sheet uploaded (MANDATORY)
- * - Packing checklist complete
- * - Program completed (checkbox)
+ * STAGE 3 → STAGE 4 EXIT CRITERIA  (Feasibility Check & Preps → Delivery)
+ * Key items that must be confirmed before delivery:
+ * - Activity availability confirmed
+ * - Facilitators availability confirmed
+ * - Transportation blocking done
+ * - Final packing done
+ * - Logistics checklist done
  */
 export const canProgressFromStage3 = (program: any): ValidationResult => {
     const errors: string[] = [];
 
-    // Trip expense sheet is mandatory
-    if (!program.tripExpenseSheet) {
-        errors.push("Trip expense sheet must be uploaded before closing delivery");
+    if (!program.confirmActivityAvailability) {
+        errors.push("Activity availability must be confirmed");
     }
 
-    // Packing checklist done
-    if (!program.packingCheckDone) {
-        errors.push("Packing checklist must be marked as complete");
+    if (!program.confirmFacilitatorsAvailability) {
+        errors.push("Facilitators availability must be confirmed & blocked");
     }
 
-    // Program completed
-    if (!program.programCompleted) {
-        errors.push("Program must be marked as completed");
+    if (!program.transportationBlocking) {
+        errors.push("Transportation must be blocked");
+    }
+
+    if (!program.logisticsChecklist) {
+        errors.push("Logistics checklist must be completed");
+    }
+
+    if (!program.finalPacking) {
+        errors.push("Final packing must be completed");
     }
 
     return {
@@ -174,13 +167,40 @@ export const canProgressFromStage3 = (program: any): ValidationResult => {
 };
 
 /**
- * STAGE 4 → STAGE 5 EXIT CRITERIA
- * - ZFD rating filled (1-5, MANDATORY)
- * - ZFD comments if rating ≤ 3 (minimum 10 characters)
- * - Expenses & bills submitted (checkbox)
- * - Ops data manager updated (checkbox)
+ * STAGE 4 → STAGE 5 EXIT CRITERIA  (Delivery → Post Trip Closure)
+ * - Trip expense submitted
+ * - Participant count filled
+ * - Team activities listed
  */
 export const canProgressFromStage4 = (program: any): ValidationResult => {
+    const errors: string[] = [];
+
+    if (!program.tripExpenseSubmitted) {
+        errors.push("Trip expense sheet must be submitted");
+    }
+
+    if (!program.participantCount) {
+        errors.push("Number of participants must be filled");
+    }
+
+    if (!program.teamActivitiesExecuted) {
+        errors.push("Team activities executed must be documented");
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
+};
+
+/**
+ * STAGE 5 → STAGE 6 EXIT CRITERIA  (Post Trip Closure → Done)
+ * - ZFD rating filled (1-5, MANDATORY)
+ * - ZFD comments if rating ≤ 3 (minimum 10 characters)
+ * - Expenses/bills submitted to finance
+ * - Ops data entry done
+ */
+export const canProgressFromStage5 = (program: any): ValidationResult => {
     const errors: string[] = [];
 
     // ZFD rating required
@@ -192,14 +212,14 @@ export const canProgressFromStage4 = (program: any): ValidationResult => {
         errors.push("Comments mandatory for ratings ≤3 (minimum 10 characters)");
     }
 
-    // Expenses submitted
-    if (!program.expensesBillsSubmitted) {
-        errors.push("Expenses and bills must be submitted");
+    // Expenses submitted to finance
+    if (!program.tripExpensesBillsSubmittedToFinance) {
+        errors.push("Expenses and bills must be submitted to Finance");
     }
 
-    // Ops data manager updated
-    if (!program.opsDataManagerUpdated) {
-        errors.push("Ops data manager must be updated");
+    // Ops data entry
+    if (!program.opsDataEntryDone) {
+        errors.push("Ops data entry must be completed");
     }
 
     return {
@@ -265,6 +285,22 @@ export const validateStage1Fields = (data: any): ValidationResult => {
 };
 
 /**
+ * Stage name lookup
+ */
+export const STAGE_NAMES: Record<number, string> = {
+    1: "Tentative Handover",
+    2: "Accepted Handover",
+    3: "Feasibility Check & Preps",
+    4: "Delivery",
+    5: "Post Trip Closure",
+    6: "Done",
+};
+
+export const getStageName = (stage: number): string => {
+    return STAGE_NAMES[stage] || `Stage ${stage}`;
+};
+
+/**
  * Helper function to validate all exit criteria based on current stage
  */
 export const validateStageProgression = (program: any): ValidationResult => {
@@ -277,6 +313,8 @@ export const validateStageProgression = (program: any): ValidationResult => {
             return canProgressFromStage3(program);
         case 4:
             return canProgressFromStage4(program);
+        case 5:
+            return canProgressFromStage5(program);
         default:
             return { isValid: false, errors: ["Invalid stage"] };
     }

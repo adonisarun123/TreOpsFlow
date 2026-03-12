@@ -96,3 +96,21 @@ export async function getProgramById(id: string) {
         }
     })
 }
+
+export async function updateProgramStage(programId: string, stage: number) {
+    const session = await auth()
+    if (!session?.user) return { error: "Unauthorized" }
+
+    try {
+        await prisma.programCard.update({
+            where: { id: programId },
+            data: { currentStage: stage }
+        })
+
+        revalidatePath('/dashboard')
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to update program stage:", error)
+        return { error: "Failed to update program stage." }
+    }
+}

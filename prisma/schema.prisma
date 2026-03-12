@@ -30,18 +30,20 @@ model ProgramCard {
   programId     String   @unique // e.g., TRB-2024-001
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  currentStage  Int      @default(1) // 1, 2, 3, 4, 5
+  currentStage  Int      @default(1) // 1=Tentative Handover, 2=Accepted Handover, 3=Feasibility, 4=Delivery, 5=Post Trip Closure, 6=Done
 
-  // Stage 1 Fields
+  // ==========================================
+  // STAGE 1: TENTATIVE HANDOVER (Sales Input)
+  // ==========================================
   programName             String
-  programType             String?  // "E2E", "Day", "Virtual", "OBL"
-  programDates            String?  // JSON string: ["2024-01-01", "2024-01-02"]
+  programType             String?  // "Team Building", "Leadership Development", "Training Workshop", "Corporate Outing", "End to End", "Events", "Other"
+  programDates            String?  // JSON string or formatted date string
   isMultiDayEvent         Boolean  @default(false)
   programTimings          String?
   location                String?
   minPax                  Int?
   maxPax                  Int?
-  trainingDays            Int?
+  trainingDays            Int?     // Manual entry (not auto-calculated)
   previousEngagement      Boolean  @default(false)
   previousEngagementNotes String?
   
@@ -54,20 +56,29 @@ model ProgramCard {
   companyName             String?
   companyAddress          String?
   
-  activityType            String?  // "OTS", "OBL", "Custom"
+  activityType            String?  // "Outdoor", "Indoor", "Mixed", "Virtual", "Hybrid"
   activitiesCommitted     String?  // JSON string
-  objectives              String?  // JSON string
-  agendaDocument          String?  // URL/Path
+  objectives              String?  // Text
+  agendaDocument          String?  // URL/Path (optional - can be added later)
   objectiveDocuments      String?  // JSON array of file URLs
   
   deliveryBudget          Float?
   billingDetails          String?
   photoVideoCommitment    Boolean  @default(false)
   
+  // Budget Categorization (breakdown of deliveryBudget)
+  budgetVenue             Float?
+  budgetTransport         Float?
+  budgetActivities        Float?
+  budgetFood              Float?
+  budgetMiscellaneous     Float?
+  budgetNotes             String?
+  
   venuePOC                String?
   specialVenueReq         String?
   eventVendorDetails      String?
   
+  // Stage 1 Approval Tracking
   opsSPOCId               String?
   opsOwner                User?    @relation("OpsOwner", fields: [opsSPOCId], references: [id])
   financeApprovalReceived Boolean  @default(false)
@@ -75,7 +86,7 @@ model ProgramCard {
   handoverAcceptedByOps   Boolean  @default(false)
   handoverIssues          String?
 
-  // Rejection Tracking
+  // Rejection Tracking (Stage 1)
   rejectionStatus         String?   // "rejected_finance" | "rejected_ops" | null
   financeRejectionReason  String?
   opsRejectionReason      String?
@@ -85,51 +96,120 @@ model ProgramCard {
   lastResubmittedAt       DateTime?
   rejector                User?     @relation("ProgramRejections", fields: [rejectedBy], references: [id])
 
-  // Stage 2 Fields
-  facilitatorsBlocked     String?  // JSON string: names or IDs
-  helperStaffBlocked      String?  // JSON string
+  // ==========================================
+  // STAGE 2: ACCEPTED HANDOVER (Ops Review)
+  // ==========================================
+  opsSPOCAssignedName       String?   // Dropdown: "Sharath", "Nels", "MK", "Vijay"
+  handoverChecklistCompleted Boolean  @default(false)  // Check all deliverables
+  meetingWithSalesDone       Boolean  @default(false)  // Call & understand deliverables
+  opsComments                String?  // Comment section for issues/discussion
+  // Ops can reject here too
+  opsRejectInAccepted        Boolean  @default(false)
+  opsRejectInAcceptedReason  String?
+
+  // ==========================================
+  // STAGE 3: FEASIBILITY CHECK & PREPS
+  // ==========================================
+  confirmActivityAvailability    Boolean @default(false)
+  agendaWalkthroughDone          Boolean @default(false)  // Discuss Agenda
+  confirmFacilitatorsAvailability Boolean @default(false)
+  facilitatorsFreelancersDetails String?  // Comment box
+  planDeliverablesValueAdds      Boolean @default(false)
+  transportationBlocking         Boolean @default(false)
+  teamTransportDetails           String?  // Comment box
+  clientTransportDetails         String?  // Comment box
+  helperBlocking                 Boolean @default(false)
+  helperDetails                  String?  // Comment box
+  welcomeEmailChecklist          Boolean @default(false)
+  opsCashRequest                 Boolean @default(false)
+  activityAreaConferenceHall     Boolean @default(false)
+  logisticsChecklist             Boolean @default(false)
+  logisticsListDocument          String?  // Doc upload
+  procurementChecklist           Boolean @default(false)
+  finalPacking                   Boolean @default(false)
+  agendaDocumentStage3           String?  // Agenda doc upload
+  printHandoverSheet             Boolean @default(false)
+  printScoreSheet                Boolean @default(false)
+  printLogisticsSheet            Boolean @default(false)
+  printBlueprints                Boolean @default(false)
+  nearestHospitalDetails         String?  // Comment box (hospital + phone)
+  feasibilityComments            String?  // General comment (travel plan, ongoing preps, etc.)
+  
+  // Legacy Stage 2 fields (kept for compatibility during migration)
+  facilitatorsBlocked     String?
+  helperStaffBlocked      String?
   transportBlocked        String?
-  agendaWalkthroughDone   Boolean  @default(false)
-  valueAddsFinalized      String?  // JSON array
-  deliverablesConfirmed   String?  // JSON array
+  valueAddsFinalized      String?
+  deliverablesConfirmed   String?
   gameAvailabilityConfirmed Boolean @default(false)
-  activityAreaConfirmed   Boolean  @default(false)
-  procurementRequired     Boolean  @default(false)
+  activityAreaConfirmed   Boolean @default(false)
+  procurementRequired     Boolean @default(false)
   procurementDetails      String?
   welcomeEmailDate        DateTime?
-  logisticsList           String?  // URL or JSON
-  logisticsListDocument   String?  // URL
-  travelPlanDocument      String?  // URL
+  logisticsList           String?
+  travelPlanDocument      String?
   travelPlanFinalized     Boolean  @default(false)
-  agendaDocumentStage2    String?  // URL
+  agendaDocumentStage2    String?
   welcomeEmailSent        Boolean  @default(false)
   allResourcesBlocked     Boolean  @default(false)
   logisticsListLocked     Boolean  @default(false)
   prepComplete            Boolean  @default(false)
 
-  // Stage 3 Fields
+  // ==========================================
+  // STAGE 4: DELIVERY
+  // ==========================================
+  specialInstructions        String?   // Comment box
+  packingFinalCheckBy        String?   // Comment box: who did final check & loading
+  packingProcurementDelays   Boolean   @default(false)  // Yes/No
+  onTimeSetup                Boolean?  // Yes/No: were we on time for activity set-up?
+  setupDelayDetails          String?   // Comment box: if No, details & reason
+  onGroundLeadGen            Boolean   @default(false)  // Yes/No
+  onGroundBD                 Boolean   @default(false)  // Yes/No
+  teamActivitiesExecuted     String?   // Comment box
+  participantCount           String?   // Comment box (number of participants)
+  outingComments             String?   // Remarks from facilitator
+  medicalIssuesComments      String?   // Comment box for medical issues
+  photosVideosUploaded       Boolean   @default(false)  // Yes/No (drive link if possible)
+  tripExpenseSubmitted        Boolean   @default(false)  // Yes/No (drive link)
+  deliveryGeneralComment     String?   // General comment box
+
+  // Legacy Stage 3 fields (kept for compatibility)
   venueReached            Boolean  @default(false)
   facilitatorsReached     Boolean  @default(false)
   programCompleted        Boolean  @default(false)
   deliveryNotes           String?
-  initialExpenseSheet     String?  // URL
+  initialExpenseSheet     String?
   packingCheckDone        Boolean  @default(false)
   packingOwner            String?
   packingDelays           Boolean  @default(false)
   packingDelayReason      String?
   setupOnTime             Boolean?
   setupIssues             String?
-  activitiesExecuted      String?  // JSON string
+  activitiesExecuted      String?
   actualParticipantCount  Int?
   medicalIssues           Boolean  @default(false)
   medicalIssueDetails     String?
   facilitatorRemarks      String?
   bdLeadGenDone           Boolean  @default(false)
   bdLeadGenDetails        String?
-  tripExpenseSheet        String?  // URL
-  photosVideos            String?  // JSON string of URLs
+  tripExpenseSheet        String?
+  photosVideos            String?
 
-  // Stage 4 Fields
+  // ==========================================
+  // STAGE 5: POST TRIP CLOSURE
+  // ==========================================
+  googleReviewDone                      Boolean @default(false)  // Yes/No
+  videoReviewDone                       Boolean @default(false)  // Yes/No
+  sharePicsToClient                     Boolean @default(false)  // Yes/No
+  opsDataEntryDone                      Boolean @default(false)  // Yes/No (drive link)
+  tripExpensesBillsSubmittedToFinance   Boolean @default(false)  // Yes/No
+  opsExpenseStatementSubmittedToSales   Boolean @default(false)  // Yes/No
+  logisticsUnpackingDone                Boolean @default(false)  // Yes/No
+  logisticsUnpackingComment             String?  // Comment box
+  zfdRating               Int?      // 1-5
+  zfdComments             String?   // Mandatory if rating ≤ 3
+
+  // Legacy Stage 4 fields (kept for compatibility)
   npsScore                Int?
   clientFeedback          String?
   finalInvoiceSubmitted   Boolean  @default(false)
@@ -137,7 +217,7 @@ model ProgramCard {
   googleReviewReceived    Boolean  @default(false)
   googleReviewLink        String?
   videoTestimonialReceived Boolean @default(false)
-  videoTestimonialFile    String?  // URL
+  videoTestimonialFile    String?
   mediaSharedWithClient   Boolean  @default(false)
   opsDataManagerUpdated   Boolean  @default(false)
   opsDataManagerLink      String?
@@ -148,14 +228,17 @@ model ProgramCard {
   damageMissingDetails    String?
   itemsSentForCleaning    Boolean  @default(false)
   firstAidCheckDone       Boolean  @default(false)
-  zfdRating               Int?
-  zfdComments             String?
 
-  // Stage 5 Fields
+  // Structured Expense Form (replaces file-only approach)
+  expenseItems            String?  // JSON: [{ category, description, amount, receipt? }]
+
+  // ==========================================
+  // STAGE 6: DONE (Archived)
+  // ==========================================
   closedAt                DateTime?
-  closedBy                String?  // User ID or Name
+  closedBy                String?
   finalNotes              String?
-  locked                  Boolean  @default(false)  // Stage 5 read-only enforcement
+  locked                  Boolean  @default(false)
 
   // Relations
   transitions StageTransition[]

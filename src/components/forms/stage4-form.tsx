@@ -19,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { updateStage4, moveToStage5 } from "@/app/actions/stage4"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, Archive, ThumbsUp } from "lucide-react"
+import { Loader2, Save, Archive, ThumbsUp, ArrowRight } from "lucide-react"
 import { showToast } from "@/components/ui/toaster"
 import { FileUpload } from "@/components/ui/file-upload"
 
@@ -43,7 +43,19 @@ const stage4Schema = z.object({
     opsDataManagerUpdated: z.boolean().default(false),
 })
 
-export function Stage4Form({ program, isReadOnly = false }: { program: any, isReadOnly?: boolean }) {
+interface Stage4FormProps {
+    program: any
+    isReadOnly?: boolean
+    onSuccess?: () => void
+    isTransitioningToThisStage?: boolean
+}
+
+export function Stage4Form({
+    program,
+    isReadOnly = false,
+    onSuccess,
+    isTransitioningToThisStage = false
+}: Stage4FormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
     const router = useRouter()
@@ -74,7 +86,11 @@ export function Stage4Form({ program, isReadOnly = false }: { program: any, isRe
                 showToast(`Error: ${result.error}`, "error")
             } else {
                 showToast("Saved successfully", "success")
-                router.refresh()
+                if (onSuccess) {
+                    onSuccess()
+                } else {
+                    router.refresh()
+                }
             }
         } catch (error: any) {
             const errorMsg = error?.message || error?.toString() || "Failed to save"
@@ -331,26 +347,35 @@ export function Stage4Form({ program, isReadOnly = false }: { program: any, isRe
 
                 {!isReadOnly && (
                     <div className="flex justify-end gap-4 pt-4 border-t">
-                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
-                            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                            Save Progress
-                        </Button>
+                        {isTransitioningToThisStage ? (
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                                Move to Stage 4
+                            </Button>
+                        ) : (
+                            <>
+                                <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
+                                    {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                    Save Progress
+                                </Button>
 
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={onCloseProgram}
-                            disabled={
-                                isLoading ||
-                                isTransitioning ||
-                                !form.getValues('zfdRating') ||
-                                !form.getValues('expensesBillsSubmitted') ||
-                                !form.getValues('opsDataManagerUpdated')
-                            }
-                        >
-                            {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
-                            Close Program & Archive
-                        </Button>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={onCloseProgram}
+                                    disabled={
+                                        isLoading ||
+                                        isTransitioning ||
+                                        !form.getValues('zfdRating') ||
+                                        !form.getValues('expensesBillsSubmitted') ||
+                                        !form.getValues('opsDataManagerUpdated')
+                                    }
+                                >
+                                    {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                                    Close Program & Archive
+                                </Button>
+                            </>
+                        )}
                     </div>
                 )}
             </form>

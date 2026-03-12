@@ -4,10 +4,16 @@ import type { NextRequest } from "next/server"
 export async function middleware(request: NextRequest) {
     const isOnDashboard = request.nextUrl.pathname.startsWith("/dashboard")
     const isOnLogin = request.nextUrl.pathname.startsWith("/login")
+    const isOnRoot = request.nextUrl.pathname === "/"
 
     // Check for NextAuth session cookie
     const sessionToken = request.cookies.get("authjs.session-token") || request.cookies.get("__Secure-authjs.session-token")
     const isLoggedIn = !!sessionToken
+
+    if (isOnRoot) {
+        if (isLoggedIn) return NextResponse.redirect(new URL("/dashboard", request.nextUrl))
+        return NextResponse.redirect(new URL("/login", request.nextUrl))
+    }
 
     if (isOnDashboard) {
         if (isLoggedIn) return NextResponse.next() // Allow access

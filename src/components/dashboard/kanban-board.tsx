@@ -1,0 +1,197 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import {
+    DndContext,
+    DragOverlay,
+    closestCorners,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragStartEvent,
+    DragOverEvent,
+    DragEndEvent,
+} from "@dnd-kit/core"
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
+import { KanbanColumn } from "./kanban-column"
+import { KanbanCard } from "./kanban-card"
+import { StageTransitionModal } from "./stage-transition-modal"
+import { StageReturnModal } from "./stage-return-modal"
+import { ProgramViewModal } from "./program-view-modal"
+import { showToast } from "@/components/ui/toaster"
+import { useRouter } from "next/navigation"
+
+interface KanbanBoardProps {
+    initialPrograms: any[]
+}
+
+const STAGES = [
+    { id: "1", title: "Tentative Handover" },
+    { id: "2", title: "Accepted Handover" },
+    { id: "3", title: "Feasibility Check & Preps" },
+    { id: "4", title: "Delivery" },
+    { id: "5", title: "Post Trip Closure" },
+    { id: "6", title: "Done" },
+]
+
+export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
+    const [programs, setPrograms] = useState<any[]>(initialPrograms)
+    const [activeId, setActiveId] = useState<string | null>(null)
+    const [draggingProgram, setDraggingProgram] = useState<any | null>(null)
+
+    // Forward transition modal state
+    const [isForwardModalOpen, setIsForwardModalOpen] = useState(false)
+    // Backward return modal state
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState(false)
+    // View modal state
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+    const [viewProgram, setViewProgram] = useState<any | null>(null)
+
+    const [pendingTransition, setPendingTransition] = useState<{ programId: string, targetStage: number } | null>(null)
+    const [transitionProgram, setTransitionProgram] = useState<any | null>(null)
+
+    const router = useRouter()
+
+    useEffect(() => {
+        setPrograms(initialPrograms)
+    }, [initialPrograms])
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // 8px movement required to start drag (allows clicks without triggering drag)
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    )
+
+    function handleDragStart(event: DragStartEvent) {
+        const { active } = event
+        setActiveId(active.id as string)
+        const program = programs.find((p) => p.id === active.id)
+        setDraggingProgram(program)
+    }
+
+    function handleDragOver(event: DragOverEvent) {
+        // Optimistic sorting could be added here
+    }
+
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event
+        setActiveId(null)
+        setDraggingProgram(null)
+
+        if (!over) return
+
+        const activeId = active.id as string
+        const overId = over.id as string
+
+        const program = programs.find((p) => p.id === activeId)
+        if (!program) return
+
+        let targetStageId = overId
+        const overProgram = programs.find(p => p.id === overId)
+        if (overProgram) {
+            targetStageId = String(overProgram.currentStage)
+        }
+
+        const isColumn = STAGES.some(s => s.id === targetStageId)
+        if (!isColumn) return
+
+        const targetStage = parseInt(targetStageId)
+        const currentStage = program.currentStage
+
+        if (targetStage === currentStage) return
+
+        setPendingTransition({ programId: activeId, targetStage })
+        setTransitionProgram(program)
+
+        if (targetStage > currentStage) {
+            setIsForwardModalOpen(true)
+        } else {
+            setIsReturnModalOpen(true)
+        }
+    }
+
+    function handleCardClick(program: any) {
+        setViewProgram(program)
+        setIsViewModalOpen(true)
+    }
+
+    function handleForwardConfirm() {
+        setIsForwardModalOpen(false)
+        setPendingTransition(null)
+        setTransitionProgram(null)
+        router.refresh()
+    }
+
+    function handleReturnConfirm() {
+        setIsReturnModalOpen(false)
+        setPendingTransition(null)
+        setTransitionProgram(null)
+        router.refresh()
+    }
+
+    function handleModalClose() {
+        setIsForwardModalOpen(false)
+        setIsReturnModalOpen(false)
+        setPendingTransition(null)
+        setTransitionProgram(null)
+    }
+
+    return (
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+        >
+            <div className="flex h-[calc(100vh-220px)] overflow-x-auto gap-4 pb-4">
+                {STAGES.map((stage) => (
+                    <KanbanColumn
+                        key={stage.id}
+                        id={stage.id}
+                        title={stage.title}
+                        programs={programs.filter((p) => p.currentStage === parseInt(stage.id))}
+                        onCardClick={handleCardClick}
+                    />
+                ))}
+            </div>
+
+            <DragOverlay>
+                {activeId && draggingProgram ? (
+                    <KanbanCard program={draggingProgram} />
+                ) : null}
+            </DragOverlay>
+
+            {/* Forward transition modal (drag right) */}
+            <StageTransitionModal
+                isOpen={isForwardModalOpen}
+                onClose={handleModalClose}
+                onConfirm={handleForwardConfirm}
+                program={transitionProgram}
+                targetStage={pendingTransition?.targetStage || 0}
+            />
+
+            {/* Backward return modal (drag left) */}
+            <StageReturnModal
+                isOpen={isReturnModalOpen}
+                onClose={handleModalClose}
+                onConfirm={handleReturnConfirm}
+                program={transitionProgram}
+                targetStage={pendingTransition?.targetStage || 0}
+            />
+
+            {/* View modal (click card) */}
+            <ProgramViewModal
+                isOpen={isViewModalOpen}
+                onClose={() => { setIsViewModalOpen(false); setViewProgram(null) }}
+                program={viewProgram}
+            />
+        </DndContext>
+    )
+}

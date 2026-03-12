@@ -19,8 +19,11 @@ export function HandoverActions({ program, session }: { program: any; session: a
 
     const isFinance = userRole === 'Finance' || userRole === 'Admin'
     const isOps = userRole === 'Ops' || userRole === 'Admin'
+    
+    // Both Finance and Ops can see their sections simultaneously
     const canApproveFinance = isFinance && !program.financeApprovalReceived
-    const canAcceptHandover = isOps && program.financeApprovalReceived && !program.handoverAcceptedByOps
+    // Ops can reject even before Finance approves (simultaneous review)
+    const canRejectOps = isOps && !program.handoverAcceptedByOps
 
     // Finance Approval
     async function onApproveFinance() {
@@ -30,7 +33,7 @@ export function HandoverActions({ program, session }: { program: any; session: a
         if (result.error) {
             showToast(result.error, "error")
         } else {
-            showToast("Budget approved successfully", "success")
+            showToast("Budget approved — program moved to Accepted Handover", "success")
             router.refresh()
         }
         setIsLoading(false)
@@ -44,31 +47,12 @@ export function HandoverActions({ program, session }: { program: any; session: a
             showToast(result.error, "error")
             throw new Error(result.error)
         } else {
-            showToast("Program rejected - Sales team notified", "success")
+            showToast("Program rejected – Sales team notified", "success")
             router.refresh()
         }
     }
 
-    // Ops Handover Acceptance
-    async function onAcceptHandover() {
-        setIsLoading(true)
-        const result = await acceptHandover(program.id)
-
-        if (result.error) {
-            showToast(result.error, "error")
-            if ((result as any).details && (result as any).details.length > 0) {
-                (result as any).details.forEach((detail: string) => {
-                    showToast(detail, "error")
-                })
-            }
-        } else {
-            showToast("Handover accepted, program moved to Stage 2", "success")
-            router.refresh()
-        }
-        setIsLoading(false)
-    }
-
-    // Ops Handover Rejection
+    // Ops Handover Rejection (can happen even before Finance approval)
     async function onRejectHandover(reason: string) {
         const result = await rejectOpsHandover(program.id, reason)
 
@@ -76,14 +60,22 @@ export function HandoverActions({ program, session }: { program: any; session: a
             showToast(result.error, "error")
             throw new Error(result.error)
         } else {
-            showToast("Handover rejected - Sales team notified", "success")
+            showToast("Handover rejected – Sales team notified", "success")
             router.refresh()
         }
     }
 
     return (
         <div className="space-y-4">
-            {/* Finance Approval Section */}
+            {/* Status Banner */}
+            {program.financeApprovalReceived && (
+                <div className="border p-3 rounded-md bg-green-50 text-green-800 text-sm font-medium flex items-center gap-2">
+                    <Check className="h-4 w-4" />
+                    Finance has approved the budget
+                </div>
+            )}
+
+            {/* Finance Approval Section — shown simultaneously */}
             {canApproveFinance && (
                 <div className="border p-4 rounded-md bg-blue-50">
                     <h3 className="font-semibold mb-2 text-blue-900">Finance Approval Required</h3>
@@ -115,33 +107,26 @@ export function HandoverActions({ program, session }: { program: any; session: a
                 </div>
             )}
 
-            {/* Ops Handover Section */}
-            {canAcceptHandover && (
+            {/* Ops Review Section — shown simultaneously with Finance */}
+            {canRejectOps && (
                 <div className="border p-4 rounded-md bg-orange-50">
-                    <h3 className="font-semibold mb-2 text-orange-900">Ops Handover Required</h3>
+                    <h3 className="font-semibold mb-2 text-orange-900">Ops Review</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                        Budget approved by Finance. Accept handover to proceed to Stage 2.
+                        Review the handover details. If any information is missing or incorrect, reject it back to Sales.
+                        {!program.financeApprovalReceived && (
+                            <span className="block mt-1 text-orange-700 font-medium">
+                                Note: Finance approval is pending. You can reject now if info is missing.
+                            </span>
+                        )}
                     </p>
                     <div className="flex gap-2">
-                        <Button
-                            onClick={onAcceptHandover}
-                            disabled={isLoading}
-                            className="bg-green-600 hover:bg-green-700"
-                        >
-                            {isLoading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Check className="mr-2 h-4 w-4" />
-                            )}
-                            Accept Handover (Ops)
-                        </Button>
                         <Button
                             variant="destructive"
                             onClick={() => setShowOpsRejectModal(true)}
                             disabled={isLoading}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Reject Handover
+                            Reject — Missing Info
                         </Button>
                     </div>
                 </div>
@@ -163,8 +148,8 @@ export function HandoverActions({ program, session }: { program: any; session: a
                 onClose={() => setShowOpsRejectModal(false)}
                 onSubmit={onRejectHandover}
                 title="Reject Handover"
-                description="This program will be returned to the Sales team. Please explain why you cannot accept it."
-                placeholder="e.g., Dates unavailable, Staff shortage, Venue not feasible, Logistics issues..."
+                description="This program will be returned to the Sales team. Please explain what information is missing or incorrect."
+                placeholder="e.g., Dates unavailable, Missing client details, Venue not feasible, Logistics issues..."
             />
         </div>
     )
