@@ -1,11 +1,11 @@
 import { handlers } from "@/auth"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { rateLimit, getClientIp } from "@/lib/rate-limit"
 
 const { GET: originalGET, POST: originalPOST } = handlers
 
 // Rate limit auth POST requests (login attempts): 10 per minute per IP
-export async function POST(request: Request, context: any) {
+export async function POST(request: NextRequest) {
     const ip = getClientIp(request)
     const result = rateLimit(`auth:${ip}`, 10, 60_000)
 
@@ -22,11 +22,11 @@ export async function POST(request: Request, context: any) {
         )
     }
 
-    return originalPOST(request, context)
+    return originalPOST(request)
 }
 
 // GET requests (session checks) — lighter rate limiting: 30 per minute
-export async function GET(request: Request, context: any) {
+export async function GET(request: NextRequest) {
     const ip = getClientIp(request)
     const result = rateLimit(`auth-get:${ip}`, 30, 60_000)
 
@@ -37,5 +37,5 @@ export async function GET(request: Request, context: any) {
         )
     }
 
-    return originalGET(request, context)
+    return originalGET(request)
 }

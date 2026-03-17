@@ -322,7 +322,7 @@ export async function rejectOpsInStage2(programId: string, reason: string) {
                 programCardId: programId,
                 fromStage: 2,
                 toStage: 1,
-                transitionedBy: userId,
+                transitionedBy: userId!,
                 approvalNotes: `Rejected by Ops in Accepted Handover: ${reason.trim()}`
             }
         })

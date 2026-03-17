@@ -12,7 +12,8 @@
       "Bash(grep -r \"console.error\\\\|console.warn\\\\|console.log\" D:/TreOps/TreOpsFlow/src --include=*.ts --include=*.tsx)",
       "Bash(grep -rn \"any\\\\|TODO\\\\|FIXME\" D:/TreOps/TreOpsFlow/src/lib --include=*.ts)",
       "Bash(npx prisma:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
