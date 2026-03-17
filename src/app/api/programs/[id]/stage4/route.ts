@@ -28,8 +28,7 @@ export async function PUT(
                 participantCount: body.participantCount,
                 outingComments: body.outingComments,
                 medicalIssuesComments: body.medicalIssuesComments,
-                photosVideosUploaded: body.photosVideosUploaded,
-                tripExpenseSubmitted: body.tripExpenseSubmitted,
+                photosVideosDriveLink: body.photosVideosDriveLink,
                 deliveryGeneralComment: body.deliveryGeneralComment,
             },
         })

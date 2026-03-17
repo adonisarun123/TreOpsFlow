@@ -101,17 +101,23 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
         const isColumn = STAGES.some(s => s.id === targetStageId)
         if (!isColumn) return
 
-        const targetStage = parseInt(targetStageId)
+        let targetStage = parseInt(targetStageId)
         const currentStage = program.currentStage
 
         if (targetStage === currentStage) return
 
-        setPendingTransition({ programId: activeId, targetStage })
-        setTransitionProgram(program)
-
+        // Cap forward movement to one stage at a time
         if (targetStage > currentStage) {
+            if (targetStage > currentStage + 1) {
+                showToast("Cards can only move one stage at a time", "info")
+                targetStage = currentStage + 1
+            }
+            setPendingTransition({ programId: activeId, targetStage })
+            setTransitionProgram(program)
             setIsForwardModalOpen(true)
         } else {
+            setPendingTransition({ programId: activeId, targetStage })
+            setTransitionProgram(program)
             setIsReturnModalOpen(true)
         }
     }

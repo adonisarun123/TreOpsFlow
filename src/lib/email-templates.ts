@@ -27,13 +27,13 @@ function baseTemplate(content: string): string {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏔️ Trebound Operations</h1>
+            <h1>Knot by Trebound</h1>
         </div>
         <div class="content">
             ${content}
         </div>
         <div class="footer">
-            <p>This is an automated notification from Trebound Operations Workflow System</p>
+            <p>This is an automated notification from Knot by Trebound</p>
             <p>© ${new Date().getFullYear()} Trebound. All rights reserved.</p>
         </div>
     </div>
@@ -70,7 +70,7 @@ export function programCreatedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program Details</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -104,7 +104,7 @@ export function financeApprovalRequestedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Approve</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -135,7 +135,7 @@ export function budgetApprovedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -171,7 +171,7 @@ export function opsHandoverReadyEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Accept Handover</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -206,7 +206,7 @@ export function handoverToOpsEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Start Working</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -246,7 +246,7 @@ export function stageCompletedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -280,7 +280,7 @@ export function programClosedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Final Report</a>
         
-        <p>Thank you for your contribution to this program's success!<br>TreOps System</p>
+        <p>Thank you for your contribution to this program's success!<br>Knot by Trebound</p>
     `
 
     return {
@@ -322,7 +322,7 @@ export function financeRejectedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Edit Program</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -365,7 +365,7 @@ export function opsRejectedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Edit Program</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -399,7 +399,7 @@ export function programResubmittedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review Program</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {
@@ -447,7 +447,7 @@ export function programReopenedEmail(data: {
         
         <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program Details</a>
         
-        <p>Thank you,<br>TreOps System</p>
+        <p>Thank you,<br>Knot by Trebound</p>
     `
 
     return {

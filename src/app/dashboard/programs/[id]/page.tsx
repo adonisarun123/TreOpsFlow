@@ -1,7 +1,6 @@
 import { getProgramById } from "@/app/actions/program"
 import { notFound } from "next/navigation"
 import { ProgramDetailsView } from "@/components/program-details"
-import { Badge } from "@/components/ui/badge"
 import { auth } from "@/auth"
 import { HandoverActions } from "@/components/handover-actions"
 import { RejectionFeedback } from "@/components/rejection-feedback"
@@ -12,6 +11,11 @@ import { Stage4DeliveryForm } from "@/components/forms/stage4-delivery-form"
 import { Stage5PostTripForm } from "@/components/forms/stage5-posttrip-form"
 import { Stage6DoneView } from "@/components/forms/stage6-done-view"
 import { getStageName } from "@/lib/validations"
+import { StageStepper } from "@/components/dashboard/stage-stepper"
+import { ArrowLeft, Building2, MapPin, CalendarIcon, User } from "lucide-react"
+import Link from "next/link"
+import { format } from "date-fns"
+import { FreelancerExportButton } from "@/components/freelancer-export-button"
 
 export default async function ProgramPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
@@ -27,107 +31,172 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
     const isOwner = program.salesPOCId === userId
     const isOpsOrAdmin = userRole === 'Ops' || userRole === 'Admin'
 
+    // Parse date for display
+    let displayDate = "N/A"
+    if (program.programDates) {
+        try {
+            const parsed = JSON.parse(program.programDates)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                displayDate = format(new Date(parsed[0]), "dd MMM yyyy")
+            }
+        } catch {
+            try { displayDate = format(new Date(program.programDates), "dd MMM yyyy") } catch { displayDate = program.programDates }
+        }
+    }
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">{program.programName}</h2>
-                    <p className="text-muted-foreground">{program.programId}</p>
+        <div className="space-y-6 max-w-5xl mx-auto">
+            {/* Back button */}
+            <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+            </Link>
+
+            {/* Header card with stepper */}
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                {/* Program info */}
+                <div className="p-5 pb-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">{program.programName}</h2>
+                            <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-muted-foreground">
+                                <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{program.programId}</span>
+                                {program.companyName && (
+                                    <span className="flex items-center gap-1">
+                                        <Building2 className="h-3.5 w-3.5" />
+                                        {program.companyName}
+                                    </span>
+                                )}
+                                {program.location && (
+                                    <span className="flex items-center gap-1">
+                                        <MapPin className="h-3.5 w-3.5" />
+                                        {program.location}
+                                    </span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                    <CalendarIcon className="h-3.5 w-3.5" />
+                                    {displayDate}
+                                </span>
+                                {program.salesOwner?.name && (
+                                    <span className="flex items-center gap-1">
+                                        <User className="h-3.5 w-3.5" />
+                                        {program.salesOwner.name}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 shrink-0">
+                            <FreelancerExportButton programId={program.id} />
+                            <span className={`stage-badge-${program.currentStage} px-3 py-1 rounded-lg text-sm font-semibold`}>
+                                {getStageName(program.currentStage)}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                    <Badge className="text-sm sm:text-lg px-3 sm:px-4 py-1">
-                        {getStageName(program.currentStage)}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs sm:text-sm px-2 py-1">
-                        Stage {program.currentStage} / 6
-                    </Badge>
+
+                {/* Stage stepper */}
+                <div className="px-5 pb-5 pt-1">
+                    <StageStepper currentStage={program.currentStage} />
                 </div>
             </div>
 
-            {/* Rejection Feedback - Shows if program is rejected */}
+            {/* Rejection Feedback */}
             <RejectionFeedback program={program} isOwner={isOwner} />
 
-            {/* Show Stage 1 Form for rejected programs (so Sales can edit and resubmit) */}
+            {/* Show Stage 1 Form for rejected programs */}
             {program.rejectionStatus && isOwner && program.currentStage === 1 && (
-                <div className="mt-6">
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-                        <p className="text-sm text-blue-700 font-medium">
-                            📝 Make your changes below, then click "Edit & Resubmit" above to send for approval again.
+                <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 p-4">
+                        <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                            📝 Make your changes below, then click &quot;Edit & Resubmit&quot; above to send for approval again.
                         </p>
                     </div>
-                    <Stage1Form program={program} isEdit={true} />
+                    <div className="p-5">
+                        <Stage1Form program={program} isEdit={true} />
+                    </div>
                 </div>
             )}
 
-            {/* Stage 1 Actions (Handover) - Only show if NOT rejected */}
+            {/* Stage 1 Actions (Handover) */}
             {program.currentStage === 1 && !program.rejectionStatus && (
-                <HandoverActions program={program} session={session} />
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-1">
+                    <HandoverActions program={program} session={session} />
+                </div>
             )}
 
             {/* Stage 2: Accepted Handover */}
             {program.currentStage === 2 && isOpsOrAdmin && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Accepted Handover</h3>
                     <Stage2AcceptedForm program={program} />
                 </div>
             )}
 
-            {/* Read-Only Stage 2 View for later stages */}
+            {/* Read-Only Stage 2 */}
             {program.currentStage > 2 && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-2 opacity-80">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Accepted Handover <span className="text-xs normal-case font-normal">(completed)</span></h3>
                     <Stage2AcceptedForm program={program} isReadOnly={true} />
                 </div>
             )}
 
-            {/* Stage 3: Feasibility Check & Preps */}
+            {/* Stage 3: Feasibility */}
             {program.currentStage === 3 && isOpsOrAdmin && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Feasibility Check & Preps</h3>
                     <Stage3FeasibilityForm program={program} />
                 </div>
             )}
 
-            {/* Read-Only Stage 3 View */}
             {program.currentStage > 3 && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-3 opacity-80">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Feasibility Check & Preps <span className="text-xs normal-case font-normal">(completed)</span></h3>
                     <Stage3FeasibilityForm program={program} isReadOnly={true} />
                 </div>
             )}
 
             {/* Stage 4: Delivery */}
             {program.currentStage === 4 && isOpsOrAdmin && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-4">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Delivery</h3>
                     <Stage4DeliveryForm program={program} />
                 </div>
             )}
 
-            {/* Read-Only Stage 4 View */}
             {program.currentStage > 4 && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-4 opacity-80">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Delivery <span className="text-xs normal-case font-normal">(completed)</span></h3>
                     <Stage4DeliveryForm program={program} isReadOnly={true} />
                 </div>
             )}
 
             {/* Stage 5: Post Trip Closure */}
             {program.currentStage === 5 && isOpsOrAdmin && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-5">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Post Trip Closure</h3>
                     <Stage5PostTripForm program={program} />
                 </div>
             )}
 
-            {/* Read-Only Stage 5 View */}
             {program.currentStage > 5 && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-5 opacity-80">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Post Trip Closure <span className="text-xs normal-case font-normal">(completed)</span></h3>
                     <Stage5PostTripForm program={program} isReadOnly={true} />
                 </div>
             )}
 
-            {/* Stage 6: Done (Archived) */}
+            {/* Stage 6: Done */}
             {program.currentStage === 6 && (
-                <div className="mt-6">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-6">
                     <Stage6DoneView program={program} currentUser={session?.user} />
                 </div>
             )}
 
-            <ProgramDetailsView program={program} />
+            {/* Program details (all raw data) */}
+            <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Full Program Details</h3>
+                <ProgramDetailsView program={program} />
+            </div>
         </div>
     )
 }

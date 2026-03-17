@@ -17,7 +17,7 @@ export async function reopenProgram(programId: string, justification: string) {
     }
 
     // Only admins can reopen programs
-    if ((session.user as any).role !== "Admin") {
+    if (session.user.role !== "Admin") {
         return { error: "Only administrators can reopen archived programs" }
     }
 
@@ -60,7 +60,7 @@ export async function reopenProgram(programId: string, justification: string) {
                 programCardId: programId,
                 fromStage: 5,
                 toStage: 4,
-                transitionedBy: (session.user as any).id || '',
+                transitionedBy: session.user.id || '',
                 approvalNotes: `Program reopened by Admin. Justification: ${justification}`
             }
         })

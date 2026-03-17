@@ -175,10 +175,6 @@ export const canProgressFromStage3 = (program: any): ValidationResult => {
 export const canProgressFromStage4 = (program: any): ValidationResult => {
     const errors: string[] = [];
 
-    if (!program.tripExpenseSubmitted) {
-        errors.push("Trip expense sheet must be submitted");
-    }
-
     if (!program.participantCount) {
         errors.push("Number of participants must be filled");
     }

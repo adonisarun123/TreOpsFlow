@@ -18,7 +18,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, Archive, CheckCircle } from "lucide-react"
+import { Loader2, Save, Archive, CheckCircle, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
 
 const stage5Schema = z.object({
@@ -94,7 +95,11 @@ export function Stage5PostTripForm({
     async function onMoveToDone() {
         setIsTransitioning(true)
         try {
-            const res = await fetch(`/api/programs/${program.id}/stage5/move`, { method: 'POST' })
+            const res = await fetch(`/api/programs/${program.id}/stage5/move`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form.getValues()),
+            })
             const result = await res.json()
             if (result.error) {
                 const msg = result.details ? `${result.error}\n\n${result.details.join('\n')}` : result.error
@@ -116,12 +121,12 @@ export function Stage5PostTripForm({
             control={form.control}
             name={name}
             render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4 bg-muted/20">
                     <FormControl>
                         <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} disabled={isReadOnly} />
                     </FormControl>
                     <div className="leading-none">
-                        <FormLabel className="text-sm">{label}</FormLabel>
+                        <FormLabel className="cursor-pointer">{label}</FormLabel>
                     </div>
                 </FormItem>
             )}
@@ -129,42 +134,52 @@ export function Stage5PostTripForm({
     )
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border p-6 rounded-md bg-white">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-purple-800 flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5" />
-                        Post Trip Closure
-                    </h3>
-                </div>
+        <TooltipProvider delayDuration={300}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-500 flex items-center gap-2">
+                            <CheckCircle className="h-5 w-5" />
+                            Post Trip Closure
+                        </h3>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Left Column: Checklists */}
-                    <div className="space-y-3">
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider">Post-Trip Checklist</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left Column: Checklists */}
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-foreground text-sm uppercase tracking-wider mb-2">Post-Trip Checklist</h4>
                         <YesNoItem name="googleReviewDone" label="Google Reviews" />
                         <YesNoItem name="videoReviewDone" label="Video Review" />
                         <YesNoItem name="sharePicsToClient" label="Share Pics to Client" />
-                        <YesNoItem name="opsDataEntryDone" label="Ops Data Entry (drive link)" />
+                        <YesNoItem name="opsDataEntryDone" label="Ops Data Entry" />
+                        <a href="https://docs.google.com/spreadsheets/d/1ygfLyuSyO0xJLIvdyWHqw3fqafLDAD5R_ZFXVYWWrb4/edit?gid=59400188#gid=59400188" target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-800 underline ml-6 -mt-2 block">📄 Open Ops Data Entry Sheet</a>
 
-                        <FormField control={form.control} name="tripExpensesBillsSubmittedToFinance" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 bg-red-50">
-                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none">
-                                    <FormLabel className="text-sm">Trip Expenses/Bills — Submit to Finance ⚠️</FormLabel>
-                                    <FormDescription className="text-xs text-red-600">Required to close</FormDescription>
-                                </div>
-                            </FormItem>
-                        )} />
+                            <FormField control={form.control} name="tripExpensesBillsSubmittedToFinance" render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border border-border bg-muted/20 p-4">
+                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
+                                    <div className="leading-none flex items-center gap-1.5 flex-1 cursor-pointer" onClick={() => !isReadOnly && field.onChange(!field.value)}>
+                                        <FormLabel className="flex items-center gap-1.5 cursor-pointer text-sm font-medium leading-none">
+                                            Trip Expenses/Bills — Submit to Finance <span className="text-destructive">*</span>
+                                        </FormLabel>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button" tabIndex={-1} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>Required to close program</TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </FormItem>
+                            )} />
+                        <a href="https://docs.google.com/spreadsheets/d/1KYrJrPRzHAo-MzUBuLc2tN2-TD8LZAkMzQbE1Yfk5q4/edit?gid=1107419973#gid=1107419973" target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-800 underline ml-6 -mt-2 block">📄 Open Trip Expense Sheet</a>
 
                         <YesNoItem name="opsExpenseStatementSubmittedToSales" label="Ops Expense Statement + Outing Comments — Submit to Sales POC" />
 
-                        <FormField control={form.control} name="logisticsUnpackingDone" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none"><FormLabel className="text-sm">Logistics Unpacking</FormLabel></div>
-                            </FormItem>
-                        )} />
+                            <FormField control={form.control} name="logisticsUnpackingDone" render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4 bg-muted/20">
+                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
+                                    <div className="leading-none cursor-pointer"><FormLabel>Logistics Unpacking</FormLabel></div>
+                                </FormItem>
+                            )} />
 
                         <FormField control={form.control} name="logisticsUnpackingComment" render={({ field }) => (
                             <FormItem>
@@ -174,13 +189,15 @@ export function Stage5PostTripForm({
                         )} />
                     </div>
 
-                    {/* Right Column: ZFD */}
-                    <div className="space-y-4">
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider">Zero Defect (ZFD) Rating</h4>
+                        {/* Right Column: ZFD */}
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-foreground text-sm uppercase tracking-wider mb-2">Zero Defect (ZFD) Rating</h4>
 
-                        <FormField control={form.control} name="zfdRating" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-base font-semibold">ZFD Rating (1-5) ⚠️</FormLabel>
+                            <FormField control={form.control} name="zfdRating" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-base font-semibold flex items-center gap-1.5">
+                                        ZFD Rating (1-5) <span className="text-destructive">*</span>
+                                    </FormLabel>
                                 <FormControl>
                                     <Input
                                         type="number"
@@ -192,9 +209,9 @@ export function Stage5PostTripForm({
                                         className="text-lg"
                                     />
                                 </FormControl>
-                                <FormDescription className="text-red-600 font-medium">
-                                    REQUIRED to close program (1=Poor, 5=Excellent)
-                                </FormDescription>
+                                    <FormDescription className="text-muted-foreground">
+                                        REQUIRED to close program (1=Poor, 5=Excellent)
+                                    </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -239,7 +256,8 @@ export function Stage5PostTripForm({
                         </Button>
                     </div>
                 )}
-            </form>
-        </Form>
+                </form>
+            </Form>
+        </TooltipProvider>
     )
 }

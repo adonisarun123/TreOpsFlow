@@ -24,11 +24,11 @@ const Stage2Schema = z.object({
 
 export async function updateProgram(id: string, data: any) {
     const session = await auth()
-    const userRole = (session?.user as any).role
+    if (!session) return { error: "Unauthorized" }
+    const userRole = session.user?.role
 
     // Who can edit? Ops/Admin for Stage 2, Sales/Admin for Stage 1 details
     // For now simple check
-    if (!session) return { error: "Unauthorized" }
 
     try {
         await prisma.programCard.update({
@@ -56,7 +56,8 @@ export async function updateProgram(id: string, data: any) {
 
 export async function moveToStage3(programId: string) {
     const session = await auth()
-    const userRole = (session?.user as any).role
+    if (!session?.user) return { error: "Unauthorized" }
+    const userRole = session.user.role
 
     if (userRole !== 'Ops' && userRole !== 'Admin') return { error: "Unauthorized" }
 
@@ -108,17 +109,8 @@ export async function moveToStage3(programId: string) {
                 programCardId: programId,
                 fromStage: 2,
                 toStage: 3,
-                transitionedBy: (session?.user as any).id,
+                transitionedBy: session.user.id,
                 approvalNotes: "Stage 2 complete. All resources blocked, prep done."
-            }
-        })
-
-        await prisma.stageTransition.create({
-            data: {
-                programCardId: programId,
-                fromStage: 2,
-                toStage: 3,
-                transitionedBy: (session?.user as any).id,
             }
         })
 

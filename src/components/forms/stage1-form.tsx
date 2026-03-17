@@ -23,7 +23,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useState, useEffect } from "react"
 import { createProgram, updateStage1 } from "@/app/actions/stage1"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, ArrowRight, CalendarIcon } from "lucide-react"
+import { Loader2, Save, ArrowRight, CalendarIcon, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileUpload } from "@/components/ui/file-upload"
 import { showToast } from "@/components/ui/toaster"
 import { format } from "date-fns"
@@ -55,7 +56,20 @@ const stage1Schema = z.object({
         { message: "Please specify your custom program type" }
     ),
     isMultiDayEvent: z.boolean().default(false),
-    programDates: z.string().optional(),
+    programDates: z.string().optional().refine((val) => {
+        if (!val) return true // optional
+        try {
+            let dateToCheck: Date
+            if (val.includes(' - ')) {
+                dateToCheck = new Date(val.split(' - ')[0])
+            } else {
+                dateToCheck = new Date(val)
+            }
+            if (isNaN(dateToCheck.getTime())) return true // unparseable, let it pass
+            const today = new Date(); today.setHours(0,0,0,0); dateToCheck.setHours(0,0,0,0)
+            return dateToCheck >= today
+        } catch { return true }
+    }, { message: "Program date cannot be in the past" }),
     programTimings: z.string().optional(),
     location: z.string().min(1, "Location required"),
     minPax: z.coerce.number().min(1, "Minimum 1 participant"),
@@ -229,19 +243,22 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* Section 1: Basic Program Information */}
-                <div className="border p-6 rounded-md bg-white">
-                    <h3 className="text-xl font-semibold mb-4 text-blue-800">Basic Program Information</h3>
+        <TooltipProvider delayDuration={300}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Section 1: Basic Program Information */}
+                    <div className="border border-border p-6 rounded-xl bg-card shadow-sm">
+                        <h3 className="text-lg font-semibold mb-5 text-primary">Basic Program Information</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
                             name="programName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Program Name ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Program Name <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., Summer Leadership Camp" {...field} />
                                     </FormControl>
@@ -255,7 +272,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="programType"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Program Type ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Program Type <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -305,14 +324,15 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             control={form.control}
                             name="isMultiDayEvent"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border bg-muted/30 p-4 mt-2">
                                     <FormControl>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                        <FormLabel>Multi-Day Event</FormLabel>
+                                        <FormLabel className="cursor-pointer">Multi-Day Event</FormLabel>
                                         <FormDescription>
-                                            Check if this program spans multiple days
+                                            Check if this program spans multiple continuous dates
+
                                         </FormDescription>
                                     </div>
                                 </FormItem>
@@ -394,9 +414,6 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                             )}
                                         </div>
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        {isMultiDay ? "Select start and end dates" : "Single date picker"}
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -407,7 +424,15 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="programTimings"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Program Timings</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Program Timings
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>Enter the start and end times for the program activities.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
                                     <FormControl>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
@@ -436,9 +461,6 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                             </div>
                                         </div>
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        Select start and end times
-                                    </FormDescription>
                                     {!isTimeRangeValid() && (
                                         <p className="text-sm font-medium text-destructive">
                                             End time must be after start time
@@ -454,7 +476,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="location"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Location ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Location <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., Mumbai, Maharashtra" {...field} />
                                     </FormControl>
@@ -468,7 +492,15 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="trainingDays"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Training / Activity Days</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Training / Activity Days
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>Enter the actual number of activity or training days. This may differ from the total event duration (e.g., travel days).</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
@@ -478,9 +510,6 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        Enter the actual number of activity/training days (may differ from event duration)
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -491,7 +520,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="minPax"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Minimum Pax ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Minimum Pax <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
@@ -511,7 +542,15 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="maxPax"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Maximum Pax ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Maximum Pax <span className="text-destructive">*</span>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>Must be greater than or equal to minimum pax.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
@@ -521,9 +560,6 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        Must be ≥ minimum pax
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -532,8 +568,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 </div>
 
                 {/* Section 2: Client Contact Details */}
-                <div className="border p-6 rounded-md bg-white">
-                    <h3 className="text-xl font-semibold mb-4 text-green-800">Client Contact Details</h3>
+                <div className="border border-border p-6 rounded-xl bg-card shadow-sm mt-8">
+                    <h3 className="text-lg font-semibold mb-5 text-green-600 dark:text-green-500">Client Contact Details</h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
@@ -541,7 +577,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="companyName"
                             render={({ field }) => (
                                 <FormItem className="md:col-span-2">
-                                    <FormLabel>Company Name ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Company Name <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., ABC Corporation" {...field} />
                                     </FormControl>
@@ -569,7 +607,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="clientPOCName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Client POC Name ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Client POC Name <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., John Doe" {...field} />
                                     </FormControl>
@@ -583,13 +623,18 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="clientPOCPhone"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Client POC Phone ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Client POC Phone <span className="text-destructive">*</span>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>Must be a valid 10-digit Indian mobile number starting with 6-9.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input placeholder="10-digit number (9876543210)" {...field} />
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        Indian mobile number starting with 6-9
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -600,7 +645,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="clientPOCEmail"
                             render={({ field }) => (
                                 <FormItem className="md:col-span-2">
-                                    <FormLabel>Client POC Email ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Client POC Email <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input type="email" placeholder="john.doe@company.com" {...field} />
                                     </FormControl>
@@ -612,20 +659,20 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 </div>
 
                 {/* Section 3: Program Requirements */}
-                <div className="border p-6 rounded-md bg-white">
-                    <h3 className="text-xl font-semibold mb-4 text-purple-800">Program Requirements</h3>
+                <div className="border border-border p-6 rounded-xl bg-card shadow-sm mt-8">
+                    <h3 className="text-lg font-semibold mb-5 text-purple-600 dark:text-purple-400">Program Requirements</h3>
 
                     <div className="space-y-6">
                         <FormField
                             control={form.control}
                             name="previousEngagement"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border bg-muted/30 p-4">
                                     <FormControl>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                        <FormLabel>Previous Engagement with Client</FormLabel>
+                                        <FormLabel className="cursor-pointer">Previous Engagement with Client</FormLabel>
                                         <FormDescription>
                                             Check if this client has worked with us before
                                         </FormDescription>
@@ -656,7 +703,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                 name="activityType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Activity Type ⚠️</FormLabel>
+                                        <FormLabel className="flex items-center gap-1.5">
+                                            Activity Type <span className="text-destructive">*</span>
+                                        </FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
@@ -681,7 +730,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                 name="deliveryBudget"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Delivery Budget (₹) ⚠️</FormLabel>
+                                        <FormLabel className="flex items-center gap-1.5">
+                                            Delivery Budget (₹) <span className="text-destructive">*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
@@ -716,13 +767,18 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             name="objectives"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Program Objectives ⚠️</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Program Objectives <span className="text-destructive">*</span>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>What does the client want to achieve? Minimum 10 characters required.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="What does the client want to achieve?" className="h-32" {...field} />
+                                        <Textarea placeholder="Client goals..." className="h-32" {...field} />
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        Minimum 10 characters required
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -746,15 +802,22 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                             control={form.control}
                             name="photoVideoCommitment"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-yellow-50">
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border border-border bg-muted/20 p-4">
                                     <FormControl>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                     </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel>Photo/Video Commitment Required</FormLabel>
-                                        <FormDescription>
-                                            Check if client needs photos/videos
-                                        </FormDescription>
+                                    <div className="leading-none flex items-center gap-1.5 flex-1 cursor-pointer" onClick={() => field.onChange(!field.value)}>
+                                        <FormLabel className="cursor-pointer text-sm font-medium leading-none">
+                                            Photo/Video Commitment ✓
+                                        </FormLabel>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button" tabIndex={-1} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                Check if we promised photos/videos to the client
+                                            </TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 </FormItem>
                             )}
@@ -763,9 +826,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 </div>
 
                 {/* Section 3.5: Budget Categorization */}
-                <div className="border p-6 rounded-md bg-white">
-                    <h3 className="text-xl font-semibold mb-4 text-teal-800">Budget Categorization</h3>
-                    <p className="text-sm text-gray-500 mb-4">Break down the delivery budget by category — helps Finance understand spending allocation.</p>
+                <div className="border border-border p-6 rounded-xl bg-card shadow-sm mt-8">
+                    <h3 className="text-lg font-semibold mb-2 text-teal-600 dark:text-teal-500">Budget Categorization</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Break down the delivery budget by category — helps Finance understand spending allocation.</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <FormField
@@ -883,8 +946,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 </div>
 
                 {/* Section 4: Logistics & Venue */}
-                <div className="border p-6 rounded-md bg-white">
-                    <h3 className="text-xl font-semibold mb-4 text-orange-800">Logistics & Venue</h3>
+                <div className="border border-border p-6 rounded-xl bg-card shadow-sm mt-8">
+                    <h3 className="text-lg font-semibold mb-5 text-orange-600 dark:text-orange-500">Logistics & Venue</h3>
 
                     <div className="space-y-6">
                         <FormField
@@ -932,8 +995,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 </div>
 
                 {/* Section 5: File Uploads */}
-                <div className="border p-6 rounded-md bg-white">
-                    <h3 className="text-xl font-semibold mb-4 text-red-800">Documents</h3>
+                <div className="border border-border p-6 rounded-xl bg-card shadow-sm mt-8">
+                    <h3 className="text-lg font-semibold mb-5 text-red-600 dark:text-red-500">Documents</h3>
 
                     <div className="space-y-6">
                         <FormField
@@ -992,5 +1055,6 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 </div>
             </form>
         </Form>
+        </TooltipProvider>
     )
 }

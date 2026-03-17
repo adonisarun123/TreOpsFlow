@@ -39,8 +39,9 @@ export async function updateStage4(id: string, data: any) {
 
 export async function moveToStage5(id: string) {
     const session = await auth()
-    const userRole = (session?.user as any).role
-    const userId = (session?.user as any).id
+    if (!session?.user) return { error: "Unauthorized" }
+    const userRole = session.user.role
+    const userId = session.user.id
 
     // Only Admin or "Finance" should technically close, but sticking to Ops flow as per previous stages, or maybe add Finance check.
     // For simplicity: Ops/Admin can close if criteria met.
@@ -121,7 +122,7 @@ export async function moveToStage5(id: string) {
                 programCardId: id,
                 fromStage: 4,
                 toStage: 5,
-                transitionedBy: (session?.user as any).id,
+                transitionedBy: session.user.id,
                 approvalNotes: `Program Closed. ZFD Rating: ${program.zfdRating}/5`
             }
         })

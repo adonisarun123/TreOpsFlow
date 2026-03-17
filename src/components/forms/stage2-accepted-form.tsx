@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/select"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, ArrowRight, Users, X } from "lucide-react"
+import { Loader2, Save, ArrowRight, Users, X, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 
@@ -99,6 +100,7 @@ export function Stage2AcceptedForm({
             const res = await fetch(`/api/programs/${program.id}/stage2/move`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form.getValues()),
             })
             const result = await res.json()
 
@@ -141,13 +143,14 @@ export function Stage2AcceptedForm({
     const OPS_POCS = ["Sharath", "Nels", "MK", "Vijay"]
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border p-6 rounded-md bg-white">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-green-800 flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Accepted Handover
-                    </h3>
+        <TooltipProvider delayDuration={300}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-green-600 dark:text-green-500 flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Accepted Handover
+                        </h3>
                     {!isReadOnly && (
                         <Button
                             type="button"
@@ -171,7 +174,9 @@ export function Stage2AcceptedForm({
                             name="opsSPOCAssignedName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Assign Ops POC *</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Assign Ops POC <span className="text-destructive">*</span>
+                                    </FormLabel>
                                     <Select
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
@@ -188,9 +193,6 @@ export function Stage2AcceptedForm({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormDescription className="text-xs">
-                                        Who will handle this program from the Ops side
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -202,15 +204,20 @@ export function Stage2AcceptedForm({
                             control={form.control}
                             name="handoverChecklistCompleted"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50">
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border border-border bg-muted/20 p-4">
                                     <FormControl>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} />
                                     </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel>Handover Acceptance Checklist ✓</FormLabel>
-                                        <FormDescription className="text-xs">
-                                            All deliverables reviewed and accounted for
-                                        </FormDescription>
+                                    <div className="leading-none flex items-center gap-1.5 flex-1 cursor-pointer" onClick={() => !isReadOnly && field.onChange(!field.value)}>
+                                        <FormLabel className="cursor-pointer text-sm font-medium leading-none">
+                                            Handover Acceptance Checklist ✓
+                                        </FormLabel>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button" tabIndex={-1} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>All deliverables reviewed and accounted for</TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 </FormItem>
                             )}
@@ -220,15 +227,20 @@ export function Stage2AcceptedForm({
                             control={form.control}
                             name="meetingWithSalesDone"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-green-50">
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border border-border bg-muted/20 p-4 mt-4">
                                     <FormControl>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} />
                                     </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel>Meeting with Sales POC ✓</FormLabel>
-                                        <FormDescription className="text-xs">
-                                            Call done — deliverables understood
-                                        </FormDescription>
+                                    <div className="leading-none flex items-center gap-1.5 flex-1 cursor-pointer" onClick={() => !isReadOnly && field.onChange(!field.value)}>
+                                        <FormLabel className="cursor-pointer text-sm font-medium leading-none">
+                                            Meeting with Sales POC ✓
+                                        </FormLabel>
+                                        <Tooltip>
+                                            <TooltipTrigger type="button" tabIndex={-1} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>Call done — deliverables understood</TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 </FormItem>
                             )}
@@ -244,7 +256,15 @@ export function Stage2AcceptedForm({
                             name="opsComments"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Comment Section</FormLabel>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Comment Section
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>Document any issues or discussion points from the handover review.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
                                     <FormControl>
                                         <Textarea
                                             placeholder="Issues, discussion points, clarifications needed, special requests..."
@@ -253,9 +273,6 @@ export function Stage2AcceptedForm({
                                             disabled={isReadOnly}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-xs">
-                                        Document any issues or discussion points from the handover review
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -288,14 +305,15 @@ export function Stage2AcceptedForm({
                 )}
             </form>
 
-            <RejectionModal
-                isOpen={showRejectModal}
-                onClose={() => setShowRejectModal(false)}
-                onSubmit={onRejectHandover}
-                title="Reject Handover (Stage 2)"
-                description="Return this program to Sales for revision. Provide details about what needs to be fixed."
-                placeholder="e.g., Missing client details, venue not feasible, dates conflict with existing programs..."
-            />
-        </Form>
+                <RejectionModal
+                    isOpen={showRejectModal}
+                    onClose={() => setShowRejectModal(false)}
+                    onSubmit={onRejectHandover}
+                    title="Reject Handover (Stage 2)"
+                    description="Return this program to Sales for revision. Provide details about what needs to be fixed."
+                    placeholder="e.g., Missing client details, venue not feasible, dates conflict with existing programs..."
+                />
+            </Form>
+        </TooltipProvider>
     )
 }

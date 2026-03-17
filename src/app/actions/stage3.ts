@@ -52,7 +52,8 @@ export async function updateStage3(id: string, data: any) {
 
 export async function moveToStage4(id: string) {
     const session = await auth()
-    const userRole = (session?.user as any).role
+    if (!session?.user) return { error: "Unauthorized" }
+    const userRole = session.user.role
 
     if (userRole !== 'Ops' && userRole !== 'Admin') return { error: "Unauthorized" }
 
@@ -112,7 +113,7 @@ export async function moveToStage4(id: string) {
                 programCardId: id,
                 fromStage: 3,
                 toStage: 4,
-                transitionedBy: (session?.user as any).id,
+                transitionedBy: session.user.id,
                 approvalNotes: "Delivery complete. Trip expense sheet submitted."
             }
         })

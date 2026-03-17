@@ -17,8 +17,8 @@ export async function approveFinance(programId: string) {
         return { success: false, error: "Unauthorized" }
     }
 
-    const userRole = (session.user as any)?.role
-    const userId = (session.user as any)?.id
+    const userRole = session.user?.role
+    const userId = session.user?.id
     if (userRole !== 'Finance' && userRole !== 'Admin') {
         return { success: false, error: "Only Finance or Admin can approve budget" }
     }
@@ -105,7 +105,7 @@ export async function acceptHandover(programId: string) {
         return { success: false, error: "Unauthorized" }
     }
 
-    const user = session.user as any
+    const user = session.user
     const userRole = user?.role
     if (userRole !== 'Ops' && userRole !== 'Admin') {
         return { success: false, error: "Only Ops or Admin can accept handover" }

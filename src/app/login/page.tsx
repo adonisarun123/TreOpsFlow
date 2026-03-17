@@ -17,8 +17,8 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
+import { Loader2, Mail, Lock } from "lucide-react"
+import Image from "next/image"
 
 const formSchema = z.object({
     email: z.string().email({
@@ -45,12 +45,6 @@ export default function LoginPage() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
         setError(null)
-
-        // We used server action or API route for auth? 
-        // Usually signIn from next-auth/react calls the API route.
-        // NOTE: client-side signIn logic needed.
-        // However, since we are using next-auth v5 beta, we might need a server action wrapper OR enable client side.
-        // Assuming standard client usage:
         try {
             const res = await signIn("credentials", {
                 email: values.email,
@@ -61,7 +55,7 @@ export default function LoginPage() {
             if (res?.error) {
                 setError("Invalid email or password")
             } else {
-                router.push("/dashboard") // Redirect to dashboard
+                router.push("/dashboard")
                 router.refresh()
             }
         } catch (e) {
@@ -72,22 +66,82 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle className="text-2xl text-center">Trebound Workflow</CardTitle>
-                </CardHeader>
-                <CardContent>
+        <div className="min-h-screen flex">
+            {/* Left: Branding Panel */}
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-900 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzEzIDAgNiAyLjY4NiA2IDZzLTIuNjg3IDYtNiA2LTYtMi42ODYtNi02IDIuNjg3LTYgNi02eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+
+                <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Image src="/logo.png" alt="Knot by Trebound" width={44} height={44} className="rounded-xl" />
+                            <div>
+                                <h1 className="text-2xl font-bold text-white">Knot</h1>
+                                <p className="text-indigo-200 text-sm -mt-0.5">by Trebound</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <h2 className="text-4xl font-bold text-white leading-tight">
+                            The point where all<br />
+                            the strings are tied<br />
+                            together.
+                        </h2>
+                        <p className="text-indigo-200 text-lg leading-relaxed max-w-md">
+                            Track programs from tentative handover through delivery to post-trip closure — all in one place.
+                        </p>
+
+                        <div className="flex gap-3 pt-4">
+                            {["Tentative", "Accepted", "Feasibility", "Delivery", "Post Trip", "Done"].map((stage, i) => (
+                                <div key={stage} className="flex items-center gap-1.5">
+                                    <div className={`h-2 w-2 rounded-full ${
+                                        ["bg-amber-400", "bg-blue-400", "bg-violet-400", "bg-emerald-400", "bg-orange-400", "bg-slate-400"][i]
+                                    }`} />
+                                    <span className="text-xs text-indigo-300/80">{stage}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <p className="text-indigo-400 text-xs">© 2026 Knot by Trebound. Internal System.</p>
+                </div>
+            </div>
+
+            {/* Right: Login Form */}
+            <div className="flex-1 flex items-center justify-center p-6 bg-background">
+                <div className="w-full max-w-sm">
+                    {/* Mobile logo */}
+                    <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
+                        <Image src="/logo.png" alt="Knot by Trebound" width={38} height={38} className="rounded-xl" />
+                        <div>
+                            <h1 className="text-xl font-bold text-foreground">Knot</h1>
+                            <p className="text-xs text-muted-foreground -mt-0.5">by Trebound</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 mb-8">
+                        <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+                        <p className="text-sm text-muted-foreground">Sign in to your account to continue</p>
+                    </div>
+
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                             <FormField
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel className="text-sm font-medium">Email</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="admin@trebound.com" {...field} />
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    className="pl-10 h-11 bg-muted/50 border-border"
+                                                    placeholder="you@trebound.com"
+                                                    {...field}
+                                                />
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -98,26 +152,45 @@ export default function LoginPage() {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Password</FormLabel>
+                                        <FormLabel className="text-sm font-medium">Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="******" {...field} />
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    className="pl-10 h-11 bg-muted/50 border-border"
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    {...field}
+                                                />
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {error && <div className="text-sm text-red-500">{error}</div>}
-                            <Button type="submit" className="w-full" disabled={isLoading}>
+
+                            {error && (
+                                <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2.5">
+                                    {error}
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                className="w-full h-11 bg-primary hover:bg-primary/90 shadow-sm text-sm font-semibold"
+                                disabled={isLoading}
+                            >
                                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                 Sign In
                             </Button>
                         </form>
                     </Form>
-                </CardContent>
-                <CardFooter className="justify-center text-sm text-gray-500">
-                    Internal System for Trebound Operations
-                </CardFooter>
-            </Card>
+
+                    <p className="text-center text-xs text-muted-foreground mt-8">
+                        Knot by Trebound — The point where all the strings are tied together.
+                    </p>
+                </div>
+            </div>
         </div>
     )
 }

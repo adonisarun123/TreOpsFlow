@@ -26,7 +26,7 @@ const ProgramSchema = z.object({
 export async function createProgram(data: any) {
     const session = await auth()
 
-    if (!session?.user || (session.user as any).role !== 'Sales' && (session.user as any).role !== 'Admin') {
+    if (!session?.user || (session.user.role !== 'Sales' && session.user.role !== 'Admin')) {
         return { error: "Unauthorized. Only Sales or Admin can create programs." }
     }
 
@@ -53,7 +53,7 @@ export async function createProgram(data: any) {
 
                 deliveryBudget: data.deliveryBudget ? parseFloat(data.deliveryBudget) : undefined,
 
-                salesPOCId: (session.user as any).id,
+                salesPOCId: session.user.id,
                 currentStage: 1,
             }
         })
@@ -66,15 +66,13 @@ export async function createProgram(data: any) {
     }
 }
 
+/**
+ * getPrograms — returns ALL programs (used by Kanban board which needs all stages).
+ * For paginated access, use getProgramsPaginated().
+ */
 export async function getPrograms() {
     const session = await auth()
     if (!session?.user) return []
-
-    const user = session.user as any
-
-    // Roles see all for now, or filter by owner? 
-    // Admin/Ops/Finance see all. Sales see their own?
-    // Docs say: View All Cards = All Roles.
 
     return await prisma.programCard.findMany({
         orderBy: { createdAt: 'desc' },
@@ -82,6 +80,66 @@ export async function getPrograms() {
             salesOwner: { select: { name: true } }
         }
     })
+}
+
+/**
+ * getProgramsPaginated — paginated program list for the table view.
+ * @param page - 1-indexed page number (default: 1)
+ * @param pageSize - items per page (default: 25, max: 100)
+ * @param stage - optional stage filter (1-6)
+ * @param search - optional search string (matches programName, programId, companyName)
+ */
+export async function getProgramsPaginated({
+    page = 1,
+    pageSize = 25,
+    stage,
+    search,
+}: {
+    page?: number
+    pageSize?: number
+    stage?: number
+    search?: string
+} = {}) {
+    const session = await auth()
+    if (!session?.user) return { programs: [], total: 0, page: 1, pageSize: 25, totalPages: 0 }
+
+    // Clamp pageSize to prevent abuse
+    const safePage = Math.max(1, page)
+    const safePageSize = Math.min(Math.max(1, pageSize), 100)
+
+    // Build where clause
+    const where: Record<string, unknown> = {}
+    if (stage && stage >= 1 && stage <= 6) {
+        where.currentStage = stage
+    }
+    if (search && search.trim()) {
+        where.OR = [
+            { programName: { contains: search.trim(), mode: 'insensitive' } },
+            { programId: { contains: search.trim(), mode: 'insensitive' } },
+            { companyName: { contains: search.trim(), mode: 'insensitive' } },
+        ]
+    }
+
+    const [programs, total] = await Promise.all([
+        prisma.programCard.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            skip: (safePage - 1) * safePageSize,
+            take: safePageSize,
+            include: {
+                salesOwner: { select: { name: true } },
+            },
+        }),
+        prisma.programCard.count({ where }),
+    ])
+
+    return {
+        programs,
+        total,
+        page: safePage,
+        pageSize: safePageSize,
+        totalPages: Math.ceil(total / safePageSize),
+    }
 }
 
 export async function getProgramById(id: string) {

@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import type { UserRole } from "@/types"
 
 const loginSchema = z.object({
     email: z.string().email(),
@@ -28,28 +29,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     throw new Error("Invalid credentials.")
                 }
 
+                // Enforce User.active check — deactivated users cannot log in
+                if (!user.active) {
+                    throw new Error("Account is deactivated. Contact an administrator.")
+                }
+
                 const passwordsMatch = await bcrypt.compare(password, user.password)
 
                 if (!passwordsMatch) {
                     throw new Error("Invalid credentials.")
                 }
 
-                return user
+                return {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role as UserRole,
+                }
             },
         }),
     ],
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.role = (user as any).role
-                token.id = user.id
+                token.role = user.role as UserRole
+                token.id = user.id!
             }
             return token
         },
         async session({ session, token }) {
             if (token && session.user) {
-                (session.user as any).role = token.role;
-                (session.user as any).id = token.id;
+                session.user.role = token.role
+                session.user.id = token.id
             }
             return session
         },

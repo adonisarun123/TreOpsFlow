@@ -17,7 +17,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, ArrowRight, ClipboardCheck } from "lucide-react"
+import { Loader2, Save, ArrowRight, ClipboardCheck, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
 import { FileUpload } from "@/components/ui/file-upload"
 
@@ -40,7 +41,7 @@ const stage3Schema = z.object({
     logisticsListDocument: z.string().optional(),
     procurementChecklist: z.boolean().default(false),
     finalPacking: z.boolean().default(false),
-    agendaDocumentStage3: z.string().optional(),
+    travelPlanComments: z.string().optional(),
     // Prints
     printHandoverSheet: z.boolean().default(false),
     printScoreSheet: z.boolean().default(false),
@@ -90,7 +91,7 @@ export function Stage3FeasibilityForm({
             logisticsListDocument: program.logisticsListDocument || "",
             procurementChecklist: program.procurementChecklist || false,
             finalPacking: program.finalPacking || false,
-            agendaDocumentStage3: program.agendaDocumentStage3 || "",
+            travelPlanComments: program.travelPlanComments || program.agendaDocumentStage3 || "",
             printHandoverSheet: program.printHandoverSheet || false,
             printScoreSheet: program.printScoreSheet || false,
             printLogisticsSheet: program.printLogisticsSheet || false,
@@ -128,6 +129,8 @@ export function Stage3FeasibilityForm({
         try {
             const res = await fetch(`/api/programs/${program.id}/stage3/move`, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form.getValues()),
             })
             const result = await res.json()
             if (result.error) {
@@ -145,18 +148,17 @@ export function Stage3FeasibilityForm({
         }
     }
 
-    const ChecklistItem = ({ name, label, description, bgColor = "" }: { name: any, label: string, description?: string, bgColor?: string }) => (
+    const ChecklistItem = ({ name, label }: { name: any, label: string }) => (
         <FormField
             control={form.control}
             name={name}
             render={({ field }) => (
-                <FormItem className={`flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 ${bgColor}`}>
+                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border border-border p-4 bg-muted/20">
                     <FormControl>
                         <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} disabled={isReadOnly} />
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm">{label}</FormLabel>
-                        {description && <FormDescription className="text-xs">{description}</FormDescription>}
+                    <div className="leading-none flex items-center gap-1.5 flex-1 cursor-pointer" onClick={() => !isReadOnly && field.onChange(!field.value)}>
+                        <FormLabel className="cursor-pointer text-sm font-medium leading-none">{label}</FormLabel>
                     </div>
                 </FormItem>
             )}
@@ -164,22 +166,23 @@ export function Stage3FeasibilityForm({
     )
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border p-6 rounded-md bg-white">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-amber-800 flex items-center gap-2">
-                        <ClipboardCheck className="h-5 w-5" />
-                        Feasibility Check & Preps
-                    </h3>
-                </div>
+        <TooltipProvider delayDuration={300}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-500 flex items-center gap-2">
+                            <ClipboardCheck className="h-5 w-5" />
+                            Feasibility Check & Preps
+                        </h3>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Left Column: Checklists */}
-                    <div className="space-y-3">
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider">Pre-Delivery Checklist</h4>
-                        <ChecklistItem name="confirmActivityAvailability" label="Confirm Activity Availability" bgColor="bg-blue-50" />
-                        <ChecklistItem name="agendaWalkthroughDone" label="Discuss Agenda" />
-                        <ChecklistItem name="confirmFacilitatorsAvailability" label="Confirm Facilitators Availability & Blocking" bgColor="bg-blue-50" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left Column: Checklists */}
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-foreground text-sm uppercase tracking-wider mb-2">Pre-Delivery Checklist</h4>
+                            <ChecklistItem name="confirmActivityAvailability" label="Confirm Activity Availability" />
+                            <ChecklistItem name="agendaWalkthroughDone" label="Discuss Agenda" />
+                            <ChecklistItem name="confirmFacilitatorsAvailability" label="Confirm Facilitators Availability & Blocking" />
 
                         <FormField control={form.control} name="facilitatorsFreelancersDetails" render={({ field }) => (
                             <FormItem>
@@ -190,8 +193,8 @@ export function Stage3FeasibilityForm({
                             </FormItem>
                         )} />
 
-                        <ChecklistItem name="planDeliverablesValueAdds" label="Plan Deliverables & Value Adds" />
-                        <ChecklistItem name="transportationBlocking" label="Transportation Blocking" bgColor="bg-blue-50" />
+                            <ChecklistItem name="planDeliverablesValueAdds" label="Plan Deliverables & Value Adds" />
+                            <ChecklistItem name="transportationBlocking" label="Transportation Blocking" />
 
                         <FormField control={form.control} name="teamTransportDetails" render={({ field }) => (
                             <FormItem>
@@ -214,15 +217,15 @@ export function Stage3FeasibilityForm({
                                 <FormControl><Textarea placeholder="Helper names, contacts, roles..." className="h-16" {...field} disabled={isReadOnly} /></FormControl>
                             </FormItem>
                         )} />
-                    </div>
+                        </div>
 
-                    {/* Right Column: More Checklists + Docs */}
-                    <div className="space-y-3">
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider">Logistics & Documentation</h4>
-                        <ChecklistItem name="welcomeEmailChecklist" label="Welcome Email to Client" />
-                        <ChecklistItem name="opsCashRequest" label="Ops Cash Request" />
-                        <ChecklistItem name="activityAreaConferenceHall" label="Activity Area / Conference Hall" />
-                        <ChecklistItem name="logisticsChecklist" label="Logistics List" bgColor="bg-blue-50" />
+                        {/* Right Column: More Checklists + Docs */}
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-foreground text-sm uppercase tracking-wider mb-2">Logistics & Documentation</h4>
+                            <ChecklistItem name="welcomeEmailChecklist" label="Welcome Email to Client" />
+                            <ChecklistItem name="opsCashRequest" label="Ops Cash Request" />
+                            <ChecklistItem name="activityAreaConferenceHall" label="Activity Area / Conference Hall" />
+                            <ChecklistItem name="logisticsChecklist" label="Logistics List" />
 
                         <FormField control={form.control} name="logisticsListDocument" render={({ field }) => (
                             <FormItem>
@@ -234,42 +237,48 @@ export function Stage3FeasibilityForm({
                             </FormItem>
                         )} />
 
-                        <ChecklistItem name="procurementChecklist" label="Procurement (if any)" />
-                        <ChecklistItem name="finalPacking" label="Final Packing" bgColor="bg-green-50" />
+                            <ChecklistItem name="procurementChecklist" label="Procurement (if any)" />
+                            <ChecklistItem name="finalPacking" label="Final Packing" />
 
-                        <FormField control={form.control} name="agendaDocumentStage3" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-sm">Agenda (Doc Upload)</FormLabel>
-                                <FormControl>
-                                    <FileUpload onUploadComplete={field.onChange} currentFile={field.value} label="Upload Agenda" disabled={isReadOnly} />
-                                </FormControl>
-                                {field.value && <a href={field.value} target="_blank" className="text-xs text-blue-600 underline">View File</a>}
-                            </FormItem>
-                        )} />
+                            <FormField control={form.control} name="travelPlanComments" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-1.5">
+                                        Travel Plan
+                                        <Tooltip>
+                                            <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                <p>Document the travel plan here (routes, timings, stops, arrangements). This replaces the need to upload an agenda document.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Travel plan details — routes, timings, stops, arrangements..." className="h-24" {...field} disabled={isReadOnly} />
+                                    </FormControl>
+                                </FormItem>
+                            )} />
 
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider pt-2">Prints</h4>
-                        <ChecklistItem name="printHandoverSheet" label="Handover Sheet" />
+                            <h4 className="font-medium text-foreground text-sm uppercase tracking-wider pt-6 mb-2">Prints</h4>
+                            <ChecklistItem name="printHandoverSheet" label="Handover Sheet" />
                         <ChecklistItem name="printScoreSheet" label="Score Sheet" />
                         <ChecklistItem name="printLogisticsSheet" label="Logistics Sheet" />
                         <ChecklistItem name="printBlueprints" label="Blueprints" />
 
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider pt-2">Safety</h4>
-                        <FormField control={form.control} name="nearestHospitalDetails" render={({ field }) => (
+                            <h4 className="font-medium text-foreground text-sm uppercase tracking-wider pt-6 mb-2">Safety</h4>
+                            <FormField control={form.control} name="nearestHospitalDetails" render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-sm">Nearest Hospital (with phone number)</FormLabel>
                                 <FormControl><Textarea placeholder="Hospital name, address, phone number..." className="h-16" {...field} disabled={isReadOnly} /></FormControl>
                             </FormItem>
                         )} />
 
-                        <FormField control={form.control} name="feasibilityComments" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-sm">Comment Section</FormLabel>
-                                <FormControl><Textarea placeholder="Travel plan, ongoing preps, notes..." className="h-24" {...field} disabled={isReadOnly} /></FormControl>
-                                <FormDescription className="text-xs">Travel plan, ongoing preps, or anything relevant</FormDescription>
-                            </FormItem>
-                        )} />
+                            <FormField control={form.control} name="feasibilityComments" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm">Comment Section</FormLabel>
+                                    <FormControl><Textarea placeholder="Travel plan, ongoing preps, notes..." className="h-24" {...field} disabled={isReadOnly} /></FormControl>
+                                </FormItem>
+                            )} />
+                        </div>
                     </div>
-                </div>
 
                 {!isReadOnly && (
                     <div className="flex justify-end gap-4 pt-4 border-t">
@@ -294,7 +303,8 @@ export function Stage3FeasibilityForm({
                         </Button>
                     </div>
                 )}
-            </form>
-        </Form>
+                </form>
+            </Form>
+        </TooltipProvider>
     )
 }

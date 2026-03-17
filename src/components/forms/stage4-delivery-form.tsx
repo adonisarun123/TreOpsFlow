@@ -18,7 +18,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, ArrowRight, Truck } from "lucide-react"
+import { Loader2, Save, ArrowRight, Truck, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
 
 const stage4Schema = z.object({
@@ -33,8 +34,7 @@ const stage4Schema = z.object({
     participantCount: z.string().optional(),
     outingComments: z.string().optional(),
     medicalIssuesComments: z.string().optional(),
-    photosVideosUploaded: z.boolean().default(false),
-    tripExpenseSubmitted: z.boolean().default(false),
+    photosVideosDriveLink: z.string().optional(),
     deliveryGeneralComment: z.string().optional(),
 })
 
@@ -71,8 +71,7 @@ export function Stage4DeliveryForm({
             participantCount: program.participantCount || "",
             outingComments: program.outingComments || "",
             medicalIssuesComments: program.medicalIssuesComments || "",
-            photosVideosUploaded: program.photosVideosUploaded || false,
-            tripExpenseSubmitted: program.tripExpenseSubmitted || false,
+            photosVideosDriveLink: program.photosVideosDriveLink || "",
             deliveryGeneralComment: program.deliveryGeneralComment || "",
         },
     })
@@ -102,7 +101,11 @@ export function Stage4DeliveryForm({
     async function onMoveToPostTrip() {
         setIsTransitioning(true)
         try {
-            const res = await fetch(`/api/programs/${program.id}/stage4/move`, { method: 'POST' })
+            const res = await fetch(`/api/programs/${program.id}/stage4/move`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form.getValues()),
+            })
             const result = await res.json()
             if (result.error) {
                 const msg = result.details ? `${result.error}\n\n${result.details.join('\n')}` : result.error
@@ -122,19 +125,20 @@ export function Stage4DeliveryForm({
     const showDelayReason = form.watch('onTimeSetup') === false
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border p-6 rounded-md bg-white">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-blue-800 flex items-center gap-2">
-                        <Truck className="h-5 w-5" />
-                        Delivery
-                    </h3>
-                </div>
+        <TooltipProvider delayDuration={300}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-500 flex items-center gap-2">
+                            <Truck className="h-5 w-5" />
+                            Delivery
+                        </h3>
+                    </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left Column */}
                     <div className="space-y-4">
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider">Pre-Delivery</h4>
+                        <h4 className="font-medium text-foreground text-sm uppercase tracking-wider mb-2">Pre-Delivery</h4>
 
                         <FormField control={form.control} name="specialInstructions" render={({ field }) => (
                             <FormItem>
@@ -151,18 +155,18 @@ export function Stage4DeliveryForm({
                         )} />
 
                         <FormField control={form.control} name="packingProcurementDelays" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4 bg-muted/20">
                                 <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none"><FormLabel>Delays with Packing or Procurement?</FormLabel></div>
+                                <div className="leading-none cursor-pointer"><FormLabel>Delays with Packing or Procurement?</FormLabel></div>
                             </FormItem>
                         )} />
 
                         <FormField control={form.control} name="onTimeSetup" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4 bg-muted/20">
                                 <FormControl><Checkbox checked={field.value === true} onCheckedChange={(checked) => field.onChange(checked)} disabled={isReadOnly} /></FormControl>
                                 <div className="leading-none">
-                                    <FormLabel>On Time for Activity Set-up?</FormLabel>
-                                    <FormDescription className="text-xs">Uncheck if there were delays</FormDescription>
+                                    <FormLabel className="cursor-pointer">On Time for Activity Set-up?</FormLabel>
+                                    <FormDescription>Uncheck if there were delays</FormDescription>
                                 </div>
                             </FormItem>
                         )} />
@@ -177,34 +181,38 @@ export function Stage4DeliveryForm({
                         )}
 
                         <FormField control={form.control} name="onGroundLeadGen" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4">
                                 <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none"><FormLabel>On Ground Lead Generation?</FormLabel></div>
+                                <div className="leading-none cursor-pointer"><FormLabel>On Ground Lead Generation?</FormLabel></div>
                             </FormItem>
                         )} />
 
                         <FormField control={form.control} name="onGroundBD" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4">
                                 <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none"><FormLabel>On Ground BD?</FormLabel></div>
+                                <div className="leading-none cursor-pointer"><FormLabel>On Ground BD?</FormLabel></div>
                             </FormItem>
                         )} />
                     </div>
 
                     {/* Right Column */}
                     <div className="space-y-4">
-                        <h4 className="font-medium text-gray-700 text-sm uppercase tracking-wider">Execution & Post-Activity</h4>
+                        <h4 className="font-medium text-foreground text-sm uppercase tracking-wider mb-2">Execution & Post-Activity</h4>
 
                         <FormField control={form.control} name="teamActivitiesExecuted" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Team Activities Executed</FormLabel>
+                                <FormLabel className="flex items-center gap-1.5">
+                                    Team Activities Executed <span className="text-destructive">*</span>
+                                </FormLabel>
                                 <FormControl><Textarea placeholder="List of activities executed..." className="h-20" {...field} disabled={isReadOnly} /></FormControl>
                             </FormItem>
                         )} />
 
                         <FormField control={form.control} name="participantCount" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>No. of Participants</FormLabel>
+                                <FormLabel className="flex items-center gap-1.5">
+                                    No. of Participants <span className="text-destructive">*</span>
+                                </FormLabel>
                                 <FormControl><Input placeholder="e.g., 45" {...field} disabled={isReadOnly} /></FormControl>
                             </FormItem>
                         )} />
@@ -223,23 +231,18 @@ export function Stage4DeliveryForm({
                             </FormItem>
                         )} />
 
-                        <FormField control={form.control} name="photosVideosUploaded" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 bg-blue-50">
-                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none">
-                                    <FormLabel>Program Photos/Videos Upload</FormLabel>
-                                    <FormDescription className="text-xs">Drive link if possible</FormDescription>
-                                </div>
-                            </FormItem>
-                        )} />
-
-                        <FormField control={form.control} name="tripExpenseSubmitted" render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 bg-red-50">
-                                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isReadOnly} /></FormControl>
-                                <div className="leading-none">
-                                    <FormLabel>Trip Expense Sheet Submission ⚠️</FormLabel>
-                                    <FormDescription className="text-xs text-red-600">Required to move to Post Trip Closure</FormDescription>
-                                </div>
+                        <FormField control={form.control} name="photosVideosDriveLink" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="flex items-center gap-1.5">
+                                    Photos / Videos Upload (Drive Link)
+                                    <Tooltip>
+                                        <TooltipTrigger type="button"><Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></TooltipTrigger>
+                                        <TooltipContent className="max-w-xs">
+                                            <p>Paste the Google Drive folder link for program photos/videos.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </FormLabel>
+                                <FormControl><Input placeholder="https://drive.google.com/..." {...field} disabled={isReadOnly} /></FormControl>
                             </FormItem>
                         )} />
 
@@ -261,14 +264,15 @@ export function Stage4DeliveryForm({
                         <Button
                             type="button"
                             onClick={onMoveToPostTrip}
-                            disabled={isLoading || isTransitioning || !form.getValues('tripExpenseSubmitted') || !form.getValues('participantCount') || !form.getValues('teamActivitiesExecuted')}
+                            disabled={isLoading || isTransitioning || !form.getValues('participantCount') || !form.getValues('teamActivitiesExecuted')}
                         >
                             {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
                             Move to Post Trip Closure
                         </Button>
                     </div>
                 )}
-            </form>
-        </Form>
+                </form>
+            </Form>
+        </TooltipProvider>
     )
 }

@@ -11,8 +11,8 @@ import { financeRejectedEmail, opsRejectedEmail, programResubmittedEmail } from 
  */
 export async function rejectFinance(programId: string, reason: string) {
     const session = await auth()
-    const userRole = (session?.user as any)?.role
-    const userId = (session?.user as any)?.id
+    const userRole = session?.user?.role
+    const userId = session?.user?.id
 
     if (userRole !== 'Finance' && userRole !== 'Admin') {
         return { success: false, error: "Unauthorized - Finance role required" }
@@ -68,8 +68,8 @@ export async function rejectFinance(programId: string, reason: string) {
  */
 export async function rejectOpsHandover(programId: string, reason: string) {
     const session = await auth()
-    const userRole = (session?.user as any)?.role
-    const userId = (session?.user as any)?.id
+    const userRole = session?.user?.role
+    const userId = session?.user?.id
 
     if (userRole !== 'Ops' && userRole !== 'Admin') {
         return { success: false, error: "Unauthorized - Ops role required" }
@@ -125,8 +125,8 @@ export async function rejectOpsHandover(programId: string, reason: string) {
  */
 export async function resubmitProgram(programId: string) {
     const session = await auth()
-    const userRole = (session?.user as any)?.role
-    const userId = (session?.user as any)?.id
+    const userRole = session?.user?.role
+    const userId = session?.user?.id
 
     // Only Sales owner or Admin can resubmit
     const program = await prisma.programCard.findUnique({
@@ -142,12 +142,12 @@ export async function resubmitProgram(programId: string) {
         return { success: false, error: "Unauthorized - Only program owner can resubmit" }
     }
 
-    if (!(program as any).rejectionStatus) {
+    if (!program.rejectionStatus) {
         return { success: false, error: "Program is not rejected" }
     }
 
     try {
-        const wasRejectedByFinance = (program as any).rejectionStatus === 'rejected_finance'
+        const wasRejectedByFinance = program.rejectionStatus === 'rejected_finance'
 
         await prisma.programCard.update({
             where: { id: programId },
@@ -155,7 +155,7 @@ export async function resubmitProgram(programId: string) {
                 rejectionStatus: null,
                 rejectedBy: null,
                 rejectedAt: null,
-                resubmissionCount: ((program as any).resubmissionCount || 0) + 1,
+                resubmissionCount: (program.resubmissionCount || 0) + 1,
                 lastResubmittedAt: new Date(),
             }
         })
@@ -177,7 +177,7 @@ export async function resubmitProgram(programId: string) {
                             programName: program.programName,
                             programId: program.programId,
                             salesOwnerName: program.salesOwner?.name || 'Sales Owner',
-                            resubmissionCount: ((program as any).resubmissionCount || 0) + 1,
+                            resubmissionCount: (program.resubmissionCount || 0) + 1,
                         })
                     })
                 }
@@ -196,7 +196,7 @@ export async function resubmitProgram(programId: string) {
                             programName: program.programName,
                             programId: program.programId,
                             salesOwnerName: program.salesOwner?.name || 'Sales Owner',
-                            resubmissionCount: ((program as any).resubmissionCount || 0) + 1,
+                            resubmissionCount: (program.resubmissionCount || 0) + 1,
                         })
                     })
                 }
@@ -286,8 +286,8 @@ export async function getPendingApprovals(userRole: string) {
  */
 export async function rejectOpsInStage2(programId: string, reason: string) {
     const session = await auth()
-    const userRole = (session?.user as any)?.role
-    const userId = (session?.user as any)?.id
+    const userRole = session?.user?.role
+    const userId = session?.user?.id
 
     if (userRole !== 'Ops' && userRole !== 'Admin') {
         return { success: false, error: "Unauthorized - Ops role required" }

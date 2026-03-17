@@ -3,6 +3,7 @@
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { KanbanCard } from "./kanban-card"
+import { FolderOpen } from "lucide-react"
 
 interface KanbanColumnProps {
     id: string
@@ -11,23 +12,48 @@ interface KanbanColumnProps {
     onCardClick?: (program: any) => void
 }
 
+const COLUMN_COLORS: Record<string, { border: string; header: string; dot: string }> = {
+    "1": { border: "border-t-amber-400", header: "bg-amber-50 dark:bg-amber-950/30", dot: "bg-amber-400" },
+    "2": { border: "border-t-blue-400", header: "bg-blue-50 dark:bg-blue-950/30", dot: "bg-blue-400" },
+    "3": { border: "border-t-violet-400", header: "bg-violet-50 dark:bg-violet-950/30", dot: "bg-violet-400" },
+    "4": { border: "border-t-emerald-400", header: "bg-emerald-50 dark:bg-emerald-950/30", dot: "bg-emerald-400" },
+    "5": { border: "border-t-orange-400", header: "bg-orange-50 dark:bg-orange-950/30", dot: "bg-orange-400" },
+    "6": { border: "border-t-slate-400", header: "bg-slate-50 dark:bg-slate-800/30", dot: "bg-slate-400" },
+}
+
 export function KanbanColumn({ id, title, programs, onCardClick }: KanbanColumnProps) {
-    const { setNodeRef } = useDroppable({ id })
+    const { setNodeRef, isOver } = useDroppable({ id })
+    const colors = COLUMN_COLORS[id] || COLUMN_COLORS["6"]
 
     return (
-        <div className="flex flex-col h-full bg-slate-50/50 rounded-lg border border-slate-200 min-w-[280px] w-[280px]">
+        <div className={`
+            flex flex-col h-full bg-card rounded-xl border border-border min-w-[220px] flex-1 
+            border-t-[3px] ${colors.border} shadow-sm
+            transition-shadow duration-200
+            ${isOver ? "shadow-md ring-2 ring-primary/20" : ""}
+        `}>
             {/* Header */}
-            <div className="p-3 border-b border-slate-200 bg-white rounded-t-lg sticky top-0 z-10">
+            <div className={`p-3 border-b border-border ${colors.header} rounded-t-[9px] sticky top-0 z-10`}>
                 <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm text-slate-700">{title}</h3>
-                    <span className="bg-slate-100 text-slate-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                    <div className="flex items-center gap-2">
+                        <div className={`h-2 w-2 rounded-full ${colors.dot}`} />
+                        <h3 className="font-semibold text-xs text-foreground tracking-wide">{title}</h3>
+                    </div>
+                    <span className="bg-muted text-muted-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums">
                         {programs.length}
                     </span>
                 </div>
             </div>
 
             {/* Droppable Area */}
-            <div ref={setNodeRef} className="flex-1 p-2 overflow-y-auto min-h-[150px]">
+            <div
+                ref={setNodeRef}
+                className={`
+                    flex-1 p-2 overflow-y-auto min-h-[120px]
+                    ${isOver ? "bg-primary/5" : ""}
+                    transition-colors duration-200
+                `}
+            >
                 <SortableContext
                     items={programs.map(p => p.id)}
                     strategy={verticalListSortingStrategy}
@@ -38,8 +64,14 @@ export function KanbanColumn({ id, title, programs, onCardClick }: KanbanColumnP
                 </SortableContext>
 
                 {programs.length === 0 && (
-                    <div className="h-full flex items-center justify-center text-xs text-slate-400 italic min-h-[100px]">
-                        Drop items here
+                    <div className={`
+                        h-full flex flex-col items-center justify-center min-h-[100px] 
+                        rounded-lg border-2 border-dashed 
+                        ${isOver ? "border-primary/40 bg-primary/5" : "border-border/50"}
+                        transition-colors duration-200
+                    `}>
+                        <FolderOpen className="h-5 w-5 text-muted-foreground/30 mb-1" />
+                        <span className="text-[11px] text-muted-foreground/40">Drop items here</span>
                     </div>
                 )}
             </div>

@@ -45,7 +45,7 @@ export function Stage6DoneView({ program, currentUser }: Stage6DoneViewProps) {
     }
 
     return (
-        <div className="border p-6 rounded-md bg-green-50 space-y-6">
+        <div className="border border-border bg-card shadow-sm p-6 rounded-xl space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-green-800 flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
@@ -59,25 +59,25 @@ export function Stage6DoneView({ program, currentUser }: Stage6DoneViewProps) {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-md border">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm">
                     <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
                         <Archive className="h-3 w-3" /> Closed On
                     </div>
                     <p className="font-medium text-sm">{closedDate}</p>
                 </div>
-                <div className="bg-white p-4 rounded-md border">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm">
                     <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
                         <MapPin className="h-3 w-3" /> Location
                     </div>
                     <p className="font-medium text-sm">{program.location || "N/A"}</p>
                 </div>
-                <div className="bg-white p-4 rounded-md border">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm">
                     <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
                         <Users className="h-3 w-3" /> Participants
                     </div>
                     <p className="font-medium text-sm">{program.participantCount || program.actualParticipantCount || "N/A"}</p>
                 </div>
-                <div className="bg-white p-4 rounded-md border">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm">
                     <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
                         <DollarSign className="h-3 w-3" /> ZFD Rating
                     </div>
@@ -88,14 +88,14 @@ export function Stage6DoneView({ program, currentUser }: Stage6DoneViewProps) {
             </div>
 
             {program.zfdComments && (
-                <div className="bg-white p-4 rounded-md border">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm">
                     <h4 className="text-sm font-medium text-gray-500 mb-1">ZFD Comments</h4>
                     <p className="text-sm">{program.zfdComments}</p>
                 </div>
             )}
 
             {program.finalNotes && (
-                <div className="bg-white p-4 rounded-md border">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm">
                     <h4 className="text-sm font-medium text-gray-500 mb-1">Final Notes</h4>
                     <p className="text-sm">{program.finalNotes}</p>
                 </div>
@@ -108,7 +108,7 @@ export function Stage6DoneView({ program, currentUser }: Stage6DoneViewProps) {
                         size="sm"
                         onClick={onReopen}
                         disabled={isReopening}
-                        className="text-orange-600 border-orange-400 hover:bg-orange-50"
+                        className="text-orange-600 dark:text-orange-500 border-orange-400/50 hover:bg-orange-50 dark:hover:bg-orange-950/50"
                     >
                         {isReopening ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <RotateCcw className="h-4 w-4 mr-2" />}
                         Reopen Program (Admin)

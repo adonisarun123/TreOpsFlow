@@ -1,577 +1,1031 @@
-# TreOps Flow — Complete Project Analysis
+# TreOpsFlow - Comprehensive Project Analysis
 
-> **Internal Operations Workflow Management System for Trebound**
-> An end-to-end program lifecycle management platform built to streamline Trebound's corporate event/activity delivery pipeline from Sales handover through final closure.
+**Generated**: 2026-03-16
+**Project**: TreOpsFlow (trebound-workflow)
+**Version**: 0.1.0
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Technology Stack](#technology-stack)
-3. [Architecture & Project Structure](#architecture--project-structure)
-4. [Database Schema](#database-schema)
-5. [Authentication & Authorization](#authentication--authorization)
-6. [The 5-Stage Workflow Pipeline](#the-5-stage-workflow-pipeline)
-7. [Features Breakdown](#features-breakdown)
-8. [Server Actions (Business Logic)](#server-actions-business-logic)
-9. [Email Notification System](#email-notification-system)
-10. [File Upload System](#file-upload-system)
-11. [UI Components](#ui-components)
-12. [Dashboard Pages & Routes](#dashboard-pages--routes)
-13. [Validation System](#validation-system)
-14. [Deployment & Configuration](#deployment--configuration)
-15. [Current Implementation Status](#current-implementation-status)
+1. [Project Overview](#1-project-overview)
+2. [Complete Feature Documentation](#2-complete-feature-documentation)
+3. [Database & Data Layer](#3-database--data-layer)
+4. [APIs & Integrations](#4-apis--integrations)
+5. [Configuration & Environment](#5-configuration--environment)
+6. [Current Bugs & Code Issues](#6-current-bugs--code-issues)
+7. [Testing](#7-testing)
+8. [Future Required Changes](#8-future-required-changes)
+9. [Production Readiness Changes](#9-production-readiness-changes)
+10. [Recommended Priority Roadmap](#10-recommended-priority-roadmap)
 
 ---
 
-## Project Overview
+## 1. PROJECT OVERVIEW
 
-**TreOps Flow** (package name: `trebound-workflow`) is an internal web application built for **Trebound**, a corporate team-building and outbound learning company. The system manages the complete lifecycle of corporate programs/events — from the moment a sales team creates a program card, through finance approval, operational preparation, on-site delivery, post-delivery closure, and final archival.
+### Purpose
 
-### What Problem It Solves
+TreOpsFlow is an internal operations management system built for **Trebound**, a corporate team-building and events company. It tracks programs (events/activities) through a **6-stage workflow lifecycle** from initial sales handover to post-trip closure. The system provides role-based access for Sales, Operations, Finance, and Admin teams, with approval workflows, rejection handling, automated email notifications, and comprehensive reporting.
 
-Trebound runs corporate programs (team-building activities, outbound learning events, virtual workshops, etc.) that involve multiple departments — **Sales**, **Operations**, **Finance**, and **Admin**. This tool digitizes and enforces the workflow between these teams, ensuring:
+### Tech Stack
 
-- **No program slips through the cracks** — every program follows a mandatory 5-stage pipeline
-- **Accountability at every gate** — stage transitions require specific exit criteria to be met
-- **Finance oversight** — budget must be approved before operations can begin
-- **Complete audit trail** — every stage transition is logged with who, when, and why
-- **Automated notifications** — stakeholders receive emails at every milestone
+| Category | Technology |
+|----------|-----------|
+| **Framework** | Next.js 16.1.1 (App Router, React Server Components) |
+| **Language** | TypeScript 5.9.3 |
+| **UI Library** | React 19.2.3 |
+| **Styling** | Tailwind CSS 4, Shadcn/ui (New York style), Lucide icons |
+| **Forms** | react-hook-form 7.70.0, @hookform/resolvers 5.2.2, Zod 4.3.5 |
+| **Database** | PostgreSQL via Prisma ORM 6.19.1 |
+| **Authentication** | NextAuth v5 (beta.30) with Credentials provider |
+| **Drag & Drop** | @dnd-kit/core 6.3.1 |
+| **Charts** | Recharts 3.8.0 |
+| **Email** | Nodemailer 7.0.12 |
+| **File Storage** | ImageKit (@imagekit/nodejs 7.2.1) |
+| **Date Utilities** | date-fns 4.1.0 |
+| **Password Hashing** | bcryptjs 3.0.3 |
+| **Theming** | next-themes 0.4.6 |
+| **Testing** | Jest 30.3.0, @testing-library/react 16.3.2, ts-jest 29.4.6 |
+| **Deployment** | Netlify (@netlify/plugin-nextjs 5.15.7) |
+| **Package Manager** | npm |
 
----
+### Architecture
 
-## Technology Stack
+**Monolithic Next.js Application** using the App Router pattern:
+- **Server Components** for data fetching (pages, layouts)
+- **Client Components** for interactivity (forms, kanban board, modals)
+- **Server Actions** for mutations (form submissions, stage transitions)
+- **API Routes** for RESTful endpoints (exports, cron jobs, stage moves)
+- **Middleware** for authentication guards
 
-| Layer | Technology | Version |
-|---|---|---|
-| **Framework** | Next.js (App Router) | 16.1.1 |
-| **Language** | TypeScript | 5.9.3 |
-| **UI Library** | React | 19.2.3 |
-| **Styling** | Tailwind CSS | v4 |
-| **Component Library** | Radix UI (shadcn/ui pattern) | Various |
-| **ORM** | Prisma | 6.19.1 |
-| **Database** | PostgreSQL | Production DB |
-| **Authentication** | NextAuth v5 (Auth.js beta 30) | Credentials provider |
-| **Email** | Nodemailer (SMTP/Gmail) | 7.0.12 |
-| **File Storage** | ImageKit (@imagekit/nodejs v7) | Cloud CDN |
-| **Form Handling** | React Hook Form + Zod | 7.70.0 / 4.3.5 |
-| **Drag & Drop** | @dnd-kit/core + sortable | 6.3.1 |
-| **Date Utilities** | date-fns | 4.1.0 |
-| **Icons** | Lucide React | 0.562.0 |
-| **Font** | Geist (via `next/font`) | — |
-| **Password Hashing** | bcryptjs | 3.0.3 |
-| **Hosting** | Netlify (with `@netlify/plugin-nextjs`) | — |
-
----
-
-## Architecture & Project Structure
+### Directory Structure
 
 ```
-d:\TreOps\TreOpsFlow\
-├── prisma/
-│   ├── schema.prisma          # Database schema (3 models)
-│   ├── migrations/            # DB migration history
-│   ├── seed.ts / seed.js      # Database seeding scripts
-│   └── dev.db                 # Local SQLite dev database
-├── public/
-│   └── logo.png, *.svg        # Static assets
+TreOpsFlow/
+├── prisma/                          # Database layer
+│   ├── schema.prisma                # Data model (3 models, 240+ fields)
+│   ├── migrations/                  # 4 SQL migrations
+│   ├── seed.ts                      # Default user seeding
+│   └── dev.db                       # SQLite dev database
 ├── src/
-│   ├── auth.ts                # NextAuth configuration (Credentials provider)
-│   ├── middleware.ts           # Route protection middleware
-│   ├── app/
-│   │   ├── layout.tsx          # Root layout (Geist fonts + Toaster)
-│   │   ├── page.tsx            # Home page (default Next.js boilerplate)
-│   │   ├── globals.css         # Global styles
-│   │   ├── login/
-│   │   │   └── page.tsx        # Login page (client component)
-│   │   ├── api/
-│   │   │   └── auth/           # NextAuth API route handlers
-│   │   ├── actions/            # 10 Server Actions (core business logic)
-│   │   │   ├── program.ts      # CRUD for ProgramCard
-│   │   │   ├── stage1.ts       # Stage 1 create/update + emails
-│   │   │   ├── stage2.ts       # Stage 2 update + move to Stage 3
-│   │   │   ├── stage3.ts       # Stage 3 update + move to Stage 4
-│   │   │   ├── stage4.ts       # Stage 4 update + move to Stage 5
-│   │   │   ├── stage5.ts       # Reopen closed programs (Admin only)
-│   │   │   ├── approval.ts     # Finance approval + Ops handover
-│   │   │   ├── rejection.ts    # Finance/Ops rejection + resubmission
-│   │   │   ├── admin.ts        # User management + dashboard stats
-│   │   │   └── upload.ts       # File upload to ImageKit
-│   │   └── dashboard/
-│   │       ├── layout.tsx       # Dashboard sidebar + navigation
-│   │       ├── page.tsx         # Main dashboard (programs list/board)
-│   │       ├── programs/
-│   │       │   ├── page.tsx     # All Programs (re-exports dashboard)
-│   │       │   ├── new/page.tsx # New Program form
-│   │       │   └── [id]/page.tsx # Program detail (stage forms)
-│   │       ├── pending-approvals/page.tsx  # Finance/Ops review queue
-│   │       ├── reports/page.tsx            # Analytics dashboard
-│   │       ├── settings/page.tsx           # User profile view
-│   │       └── team/
-│   │           ├── page.tsx     # Team management (Admin only)
-│   │           └── add-user-form.tsx
+│   ├── app/                         # Next.js App Router
+│   │   ├── layout.tsx               # Root layout (fonts, theme, toaster)
+│   │   ├── page.tsx                 # Root redirect (auth check)
+│   │   ├── globals.css              # Tailwind + custom stage colors
+│   │   ├── login/page.tsx           # Login page
+│   │   ├── actions/                 # Server Actions (10 files, ~1,700 lines)
+│   │   ├── api/                     # API Routes
+│   │   │   ├── auth/                # NextAuth handlers
+│   │   │   ├── cron/                # 4 scheduled job endpoints
+│   │   │   └── programs/            # Program CRUD & stage endpoints
+│   │   └── dashboard/               # Protected dashboard pages
+│   │       ├── layout.tsx           # Auth guard + shell wrapper
+│   │       ├── page.tsx             # Kanban board view
+│   │       ├── programs/            # Program list + detail pages
+│   │       ├── pending-approvals/   # Approval queue
+│   │       ├── reports/             # Analytics dashboard
+│   │       ├── settings/            # User settings
+│   │       └── team/               # User management (Admin)
 │   ├── components/
-│   │   ├── ui/                 # 22 shadcn/ui base components
-│   │   ├── forms/              # 6 stage-specific form components
-│   │   │   ├── program-form.tsx
-│   │   │   ├── stage1-form.tsx  (47KB — most complex)
-│   │   │   ├── stage2-form.tsx
-│   │   │   ├── stage3-form.tsx
-│   │   │   ├── stage4-form.tsx
-│   │   │   └── stage5-view.tsx  (read-only archive view)
-│   │   ├── dashboard/          # Dashboard-specific components
-│   │   │   ├── dashboard-view.tsx      # List/Board toggle view
-│   │   │   ├── kanban-board.tsx        # Drag-and-drop Kanban
-│   │   │   ├── kanban-column.tsx
-│   │   │   ├── kanban-card.tsx
-│   │   │   ├── stage-transition-modal.tsx
-│   │   │   └── stage1-summary.tsx
-│   │   ├── handover-actions.tsx        # Finance/Ops action buttons
-│   │   ├── program-details.tsx         # Program detail display
-│   │   └── rejection-feedback.tsx      # Rejection reason display
-│   └── lib/
-│       ├── prisma.ts           # Prisma client singleton
-│       ├── email.ts            # SMTP transporter + sendEmail()
-│       ├── email-templates.ts  # 10 HTML email templates
-│       ├── imagekit.ts         # ImageKit upload/delete/URL utils
-│       ├── validations.ts      # All validation rules + stage exit criteria
-│       └── utils.ts            # cn() utility (clsx + tailwind-merge)
-├── .env / .env.example         # Environment configuration
-├── netlify.toml                # Netlify deployment config
-├── next.config.ts              # Next.js configuration
-└── trebound-workflow-documentation.md  # Original workflow spec document
+│   │   ├── dashboard/               # 13 dashboard components
+│   │   ├── forms/                   # 11 stage-specific forms
+│   │   ├── ui/                      # 20+ Shadcn/ui components
+│   │   └── *.tsx                    # Feature components (5 files)
+│   ├── lib/                         # Shared utilities
+│   │   ├── prisma.ts                # DB client singleton
+│   │   ├── validations.ts           # Stage progression rules
+│   │   ├── email.ts                 # Email sender (stubbed in dev)
+│   │   ├── email-templates.ts       # 11 HTML email templates
+│   │   ├── imagekit.ts              # File upload service
+│   │   └── utils.ts                 # cn() class utility
+│   ├── auth.ts                      # NextAuth configuration
+│   └── middleware.ts                # Route protection
+├── __tests__/                       # Test suite
+├── __mocks__/                       # Prisma mocks
+├── package.json                     # Dependencies & scripts
+├── next.config.ts                   # Next.js config
+├── tsconfig.json                    # TypeScript config
+├── jest.config.js                   # Test config
+└── netlify.toml                     # Deployment config
 ```
 
----
+### Entry Points
 
-## Database Schema
-
-The database uses **PostgreSQL** via Prisma ORM with **3 models**:
-
-### 1. [User](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts#11-19)
-
-| Field | Type | Description |
-|---|---|---|
-| [id](file:///d:/TreOps/TreOpsFlow/src/middleware.ts#4-30) | UUID | Primary key |
-| `name` | String | Full name |
-| `email` | String (unique) | Login email |
-| `phone` | String? | Optional phone |
-| `role` | String | `"Sales"`, `"Ops"`, `"Finance"`, or `"Admin"` |
-| `password` | String | bcrypt-hashed |
-| `active` | Boolean | Default `true` |
-
-**Relations:** Owns programs as Sales POC, Ops SPOC, or Rejector.
-
-### 2. `ProgramCard`
-
-The core entity — a single flat table with **~70 fields** spanning all 5 stages:
-
-| Stage | Key Fields |
-|---|---|
-| **Stage 1 (Handover)** | `programName`, `programType`, `programDates`, `location`, `minPax`/`maxPax`, `salesPOCId`, `clientPOCName`/[Phone](file:///d:/TreOps/TreOpsFlow/src/lib/validations.ts#12-17)/[Email](file:///d:/TreOps/TreOpsFlow/src/lib/email.ts#26-55), `companyName`, `activityType`, `objectives`, `deliveryBudget`, `agendaDocument`, `financeApprovalReceived`, `handoverAcceptedByOps`, `opsSPOCId` |
-| **Rejection** | `rejectionStatus` (`rejected_finance` / `rejected_ops`), `financeRejectionReason`, `opsRejectionReason`, `rejectedBy`, `rejectedAt`, `resubmissionCount` |
-| **Stage 2 (Preps)** | `facilitatorsBlocked`, `helperStaffBlocked`, `transportBlocked`, `agendaWalkthroughDone`, `logisticsListLocked`, `allResourcesBlocked`, `prepComplete` |
-| **Stage 3 (Delivery)** | `venueReached`, `facilitatorsReached`, `programCompleted`, `tripExpenseSheet`, `packingCheckDone`, `actualParticipantCount`, `medicalIssues` |
-| **Stage 4 (Closure)** | `npsScore`, `clientFeedback`, `finalInvoiceSubmitted`, `vendorPaymentsClear`, `googleReviewLink`, `zfdRating`, `zfdComments`, `expensesBillsSubmitted`, `opsDataManagerUpdated` |
-| **Stage 5 (Archived)** | `closedAt`, `closedBy`, `finalNotes`, `locked` |
-
-### 3. `StageTransition`
-
-Audit trail for every stage change:
-
-| Field | Description |
-|---|---|
-| `fromStage` / `toStage` | The transition direction |
-| `transitionedAt` | Timestamp |
-| `transitionedBy` | User who triggered it |
-| `approvalNotes` | Optional notes |
+| Entry Point | File | Purpose |
+|-------------|------|---------|
+| Application root | `src/app/layout.tsx` | Root layout, font loading, theme provider |
+| Home page | `src/app/page.tsx` | Auth-based redirect to `/dashboard` or `/login` |
+| Auth config | `src/auth.ts` | NextAuth v5 credentials provider setup |
+| Middleware | `src/middleware.ts` | Route protection, redirect logic |
+| DB client | `src/lib/prisma.ts` | Prisma singleton for database access |
 
 ---
 
-## Authentication & Authorization
+## 2. COMPLETE FEATURE DOCUMENTATION
 
-### Authentication Flow
+### Feature 1: User Authentication & Authorization
 
-- **Provider**: NextAuth v5 (Auth.js) with **Credentials** provider only
-- **Login**: Email + password validated against the [User](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts#11-19) table, password compared with bcrypt
-- **Session**: JWT-based — `role` and [id](file:///d:/TreOps/TreOpsFlow/src/middleware.ts#4-30) are injected into the token/session via callbacks
-- **Custom login page** at `/login`
+**Description**: Credential-based authentication with role-based access control (RBAC) for 4 user roles: Sales, Ops, Finance, Admin.
 
-### Route Protection
+**Files**:
+- `src/auth.ts` - NextAuth v5 configuration with Credentials provider
+- `src/middleware.ts` - Route protection middleware
+- `src/app/login/page.tsx` - Login page with branded split layout
+- `src/app/api/auth/[...nextauth]/route.ts` - NextAuth API handler
 
-The [middleware.ts](file:///d:/TreOps/TreOpsFlow/src/middleware.ts) enforces:
+**How It Works**:
+1. User submits email/password on login page
+2. NextAuth Credentials provider queries Prisma for user by email
+3. bcryptjs compares password hash
+4. JWT token created with user `id`, `role`, `name`, `email`
+5. Session callbacks attach role/id to session object
+6. Middleware checks `authjs.session-token` or `__Secure-authjs.session-token` cookie
+7. Protected routes under `/dashboard/*` redirect to `/login` if unauthenticated
 
-| Route | Behavior |
-|---|---|
-| `/` (root) | Redirects to `/dashboard` if logged in, else to `/login` |
-| `/dashboard/**` | Requires authentication — redirects to `/login` if no session |
-| `/login` | Redirects to `/dashboard` if already logged in |
-| API/static routes | Pass through (excluded via matcher) |
+**Routes**: `POST /api/auth/callback/credentials`, `GET /api/auth/session`
 
-### Role-Based Access Control (RBAC)
+**Dependencies**: next-auth v5-beta.30, bcryptjs, Prisma
 
-| Capability | Sales | Ops | Finance | Admin |
-|---|---|---|---|---|
-| Create Program | ✅ | ❌ | ❌ | ✅ |
-| Edit Stage 1 | ✅ | ❌ | ❌ | ✅ |
-| Approve Finance | ❌ | ❌ | ✅ | ✅ |
-| Accept/Reject Handover | ❌ | ✅ | ❌ | ✅ |
-| Edit Stages 2–4 | ❌ | ✅ | ❌ | ✅ |
-| View Programs | ✅ | ✅ | ✅ | ✅ |
-| Reopen Closed Programs | ❌ | ❌ | ❌ | ✅ |
-| Manage Team | ❌ | ❌ | ❌ | ✅ |
-| See Pending Approvals | ❌ | ✅ | ✅ | ✅ |
+**Status**: Complete. Working but uses NextAuth beta version.
 
 ---
 
-## The 5-Stage Workflow Pipeline
+### Feature 2: 6-Stage Workflow Pipeline
 
-```mermaid
-flowchart LR
-    S1["Stage 1\nHandover +\nApproval"]
-    S2["Stage 2\nFeasibility +\nPrep"]
-    S3["Stage 3\nOn-Site\nDelivery"]
-    S4["Stage 4\nPost-Delivery\n& Closure"]
-    S5["Stage 5\nArchived\n(Locked)"]
+**Description**: Programs progress through 6 sequential stages with validation gates at each transition.
 
-    S1 -->|Finance ✅ + Ops ✅| S2
-    S2 -->|Resources + Prep ✅| S3
-    S3 -->|Expense Sheet + Packing ✅| S4
-    S4 -->|ZFD + Expenses + Data ✅| S5
-    S5 -.->|Admin Reopen| S4
+| Stage | Name | Key Activities |
+|-------|------|---------------|
+| 1 | Tentative Handover | Sales creates program, Finance/Ops approve |
+| 2 | Accepted Handover | Ops SPOC assigned, checklist, sales meeting |
+| 3 | Feasibility & Preps | Activity/facilitator blocking, logistics, packing |
+| 4 | Delivery | On-ground execution, participant count, photos |
+| 5 | Post Trip Closure | ZFD rating, expenses, data entry, review |
+| 6 | Done | Archived, locked, final notes |
 
-    S1 -->|Finance ❌| R1["Rejected\n(Resubmit)"]
-    S1 -->|Ops ❌| R1
-    R1 -->|Resubmit| S1
-```
+**Files**:
+- `src/lib/validations.ts` - Stage progression validators
+- `src/app/actions/stage1.ts` through `stage5.ts` - Stage-specific mutations
+- `src/app/actions/approval.ts` - Finance/Ops approval workflow
+- `src/app/api/programs/[id]/stage{2-5}/move/route.ts` - Stage transition API routes
+- `src/components/forms/stage{1-6}*.tsx` - Stage-specific forms
 
-### Stage 1 — Handover + Approval
+**How It Works**:
+1. Sales creates program at Stage 1 with details and budget
+2. Finance approves budget (auto-advances to Stage 2)
+3. Ops accepts handover and assigns SPOC
+4. Each stage has exit criteria validated by `canProgressFromStageN()` functions
+5. Moving forward requires filling mandatory fields for that stage
+6. Programs can be returned to earlier stages with a mandatory reason
+7. Stage 6 locks the program; only Admin can reopen
 
-- **Owner**: Sales (creates) → Finance (approves budget) → Ops (accepts handover)
-- **Sales creates** a program card with all details: client info, dates, location, pax, budget, activity type, objectives, agenda document
-- **Finance reviews** budget and either approves or rejects (with mandatory reason)
-- **Ops reviews** the handover and either accepts or rejects (with mandatory reason)
-- **Exit Criteria**: Ops SPOC assigned, Finance approved, Ops accepted, Agenda document uploaded
-- **On rejection**: Sales can edit and resubmit; rejection counter is tracked
+**Dependencies**: Prisma, Zod, react-hook-form
 
-### Stage 2 — Feasibility + Program Preparation
-
-- **Owner**: Operations Team
-- Ops blocks resources (facilitators, helpers, transport), confirms logistics, finalizes agenda
-- Upload logistics list, travel plan, and Stage 2 agenda documents
-- **Exit Criteria**: All resources blocked, logistics list locked, prep marked complete, at least 1 facilitator assigned
-
-### Stage 3 — On-Site Delivery
-
-- **Owner**: On-ground Ops/Facilitator team
-- Track venue arrival, facilitator arrival, program execution
-- Document participant count, medical issues, delivery notes
-- Upload trip expense sheet (mandatory) and complete packing checklist
-- **Exit Criteria**: Trip expense sheet uploaded, packing checklist done
-
-### Stage 4 — Post-Delivery & Closure
-
-- **Owner**: Operations + Finance
-- Collect client feedback (NPS, Google review, video testimonial)
-- Submit expenses/bills, update Ops Data Manager
-- Fill **ZFD (Zero Fault Delivery)** rating (1–5, mandatory comments if ≤ 3)
-- **Exit Criteria**: ZFD rating filled, expenses submitted, Ops data updated
-
-### Stage 5 — Archived (Done)
-
-- Program is **locked** (read-only), `closedAt` and `closedBy` recorded
-- All data preserved for reporting and audits
-- **Only Admin** can reopen (returns to Stage 4) with mandatory justification (min 10 chars)
-- Reopening appends to `finalNotes` with timestamp and reason
+**Status**: Complete. Core workflow is functional.
 
 ---
 
-## Features Breakdown
+### Feature 3: Kanban Board
 
-### 1. Dual-View Dashboard
+**Description**: Visual drag-and-drop board showing programs across 6 stage columns.
 
-- **List View**: Tabular display of all programs with Program ID, Name, Date, Stage badge, Sales Owner, and a "View" action link
-- **Board View (Kanban)**: 5-column drag-and-drop board using `@dnd-kit/core` where each column represents a stage
-- Toggle between views using tabs (List / Board icons)
-- "New Program" button visible only to Sales/Admin roles
+**Files**:
+- `src/components/dashboard/kanban-board.tsx` - Main board with DnD context
+- `src/components/dashboard/kanban-column.tsx` - Stage column with drop zone
+- `src/components/dashboard/kanban-card.tsx` - Program card with drag handle
+- `src/app/dashboard/page.tsx` - Dashboard page rendering the board
 
-### 2. Kanban Board with Drag & Drop
+**How It Works**:
+1. Programs are grouped by `currentStage` into 6 columns
+2. Dragging a card right opens StageTransitionModal (forward)
+3. Dragging a card left opens StageReturnModal (backward)
+4. Clicking a card opens ProgramViewModal (read-only)
+5. Cards show: program name, company, date, urgency badge, owner initials
 
-- Programs appear as cards in stage columns
-- Dragging a card to a new column opens a **Stage Transition Modal** for confirmation
-- Optimistic UI updates with server-side rollback on failure
-- Uses pointer and keyboard sensors with 5px activation threshold
+**Dependencies**: @dnd-kit/core, @dnd-kit/sortable
 
-### 3. Comprehensive Stage Forms
-
-- **Stage 1 Form** ([stage1-form.tsx](file:///d:/TreOps/TreOpsFlow/src/components/forms/stage1-form.tsx), 47KB): The most complex form — multi-section with basic info, client details, activity info, budget, logistics, and file uploads
-- **Stage 2 Form**: Resource blocking, logistics, agenda walkthrough, prep status
-- **Stage 3 Form**: Delivery checklist, participant tracking, expense sheets
-- **Stage 4 Form**: Feedback collection, financial closure, ZFD rating
-- **Stage 5 View**: Read-only archive view of all program data
-
-### 4. Finance Approval & Rejection Workflow
-
-- Programs in Stage 1 appear in the **Pending Approvals** page for Finance users
-- Finance can **Approve** (enables Ops handover) or **Reject** (with mandatory reason, min 10 chars)
-- Rejected programs display the rejection reason to Sales
-- Sales can **Resubmit** after editing — resubmission counter is tracked
-
-### 5. Ops Handover Acceptance & Rejection
-
-- After Finance approval, programs appear in Pending Approvals for Ops users
-- Ops can **Accept Handover** (auto-assigns themselves as SPOC, moves to Stage 2) or **Reject** (with reason)
-- On acceptance, a `StageTransition` audit record is created
-
-### 6. Email Notification System
-
-- **10 distinct email templates** with branded HTML (gradient header, Trebound branding)
-- Emails sent at every major workflow event (see [Email Notification System](#email-notification-system))
-- Non-blocking — email failures don't halt workflow operations
-
-### 7. File Upload to ImageKit CDN
-
-- Server action accepts `FormData`, validates file size (≤10MB) and type
-- **Documents**: PDF, DOC, DOCX, XLS, XLSX
-- **Media**: JPG, PNG, MP4, MOV, AVI, WMV, WEBM
-- Uploads to ImageKit cloud with unique filenames, returns CDN URL
-
-### 8. Team Management (Admin Only)
-
-- View all users in a table with name, email, role badge, and join date
-- Add new users via a dialog form (name, email, password, role selector)
-- Passwords are bcrypt-hashed before storage
-
-### 9. Reports & Analytics Dashboard
-
-- **4 metric cards**: Pipeline Revenue (₹), Active Programs, Completed Programs, Total Programs
-- Placeholder areas for charts (revenue over time, recent activity)
-- Data fetched via [getDashboardStats()](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts#61-86) server action using Prisma aggregation
-
-### 10. User Settings Page
-
-- Read-only display of current user's name, email, and role
-- Placeholder for future system-wide settings (Admin only)
-
-### 11. Program Reopening (Admin)
-
-- Admin can reopen archived (Stage 5) programs
-- Requires justification (min 10 chars)
-- Returns program to Stage 4, unlocks editing
-- Creates audit trail entry
-- Sends reopening notification emails to Sales/Ops owners
+**Status**: Complete. No optimistic UI updates; relies on page refresh after transitions.
 
 ---
 
-## Server Actions (Business Logic)
+### Feature 4: Finance & Ops Approval Workflow
 
-All business logic is implemented as Next.js **Server Actions** (`'use server'`):
+**Description**: Dual-track approval system where Finance and Ops review programs simultaneously at Stage 1.
 
-| File | Functions | Purpose |
-|---|---|---|
-| [program.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/program.ts) | [createProgram()](file:///d:/TreOps/TreOpsFlow/src/app/actions/program.ts#26-68), [getPrograms()](file:///d:/TreOps/TreOpsFlow/src/app/actions/program.ts#69-86), [getProgramById()](file:///d:/TreOps/TreOpsFlow/src/app/actions/program.ts#87-99), [updateProgramStage()](file:///d:/TreOps/TreOpsFlow/src/app/actions/program.ts#100-117) | CRUD operations for ProgramCard |
-| [stage1.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage1.ts) | [createProgram()](file:///d:/TreOps/TreOpsFlow/src/app/actions/program.ts#26-68), [updateStage1()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage1.ts#125-185) | Stage 1 creation with email notifications, field updates |
-| [stage2.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage2.ts) | [updateProgram()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage2.ts#25-56), [moveToStage3()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage2.ts#57-131) | Stage 2 field updates, validated transition to Stage 3 |
-| [stage3.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage3.ts) | [updateStage3()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage3.ts#21-52), [moveToStage4()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage3.ts#53-126) | Delivery tracking, validated transition to Stage 4 |
-| [stage4.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage4.ts) | [updateStage4()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage4.ts#10-39), [moveToStage5()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage4.ts#40-135) | Post-delivery updates, validated program closure |
-| [stage5.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage5.ts) | [reopenProgram()](file:///d:/TreOps/TreOpsFlow/src/app/actions/stage5.ts#8-108) | Admin-only: reopen archived programs back to Stage 4 |
-| [approval.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/approval.ts) | [approveFinance()](file:///d:/TreOps/TreOpsFlow/src/app/actions/approval.ts#10-72), [acceptHandover()](file:///d:/TreOps/TreOpsFlow/src/app/actions/approval.ts#73-141), [moveToStage2()](file:///d:/TreOps/TreOpsFlow/src/app/actions/approval.ts#142-190) | Finance budget approval, Ops handover with validation |
-| [rejection.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/rejection.ts) | [rejectFinance()](file:///d:/TreOps/TreOpsFlow/src/app/actions/rejection.ts#9-65), [rejectOpsHandover()](file:///d:/TreOps/TreOpsFlow/src/app/actions/rejection.ts#66-122), [resubmitProgram()](file:///d:/TreOps/TreOpsFlow/src/app/actions/rejection.ts#123-215), [getPendingApprovals()](file:///d:/TreOps/TreOpsFlow/src/app/actions/rejection.ts#216-279) | Rejection workflows with email notifications |
-| [admin.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts) | [getUsers()](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts#11-19), [createUser()](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts#27-57), [getDashboardStats()](file:///d:/TreOps/TreOpsFlow/src/app/actions/admin.ts#61-86) | User CRUD, analytics aggregation |
-| [upload.ts](file:///d:/TreOps/TreOpsFlow/src/app/actions/upload.ts) | [uploadFile()](file:///d:/TreOps/TreOpsFlow/src/app/actions/upload.ts#7-53), [getUploadAuth()](file:///d:/TreOps/TreOpsFlow/src/app/actions/upload.ts#54-65) | ImageKit file upload with validation |
+**Files**:
+- `src/app/actions/approval.ts` - `approveFinance()`, `acceptHandover()`
+- `src/app/actions/rejection.ts` - `rejectFinance()`, `rejectOpsHandover()`, `resubmitProgram()`
+- `src/components/handover-actions.tsx` - Approval/rejection UI
+- `src/components/rejection-feedback.tsx` - Rejection display & resubmit
+- `src/app/dashboard/pending-approvals/page.tsx` - Approval queue page
 
----
+**How It Works**:
+1. Program created at Stage 1 triggers emails to Finance and Ops
+2. Finance can approve or reject budget (with reason)
+3. Ops can accept or reject handover (with reason)
+4. Finance approval auto-advances to Stage 2
+5. Rejection sets `rejectionStatus` and notifies Sales
+6. Sales can edit and resubmit (increments `resubmissionCount`)
+7. Ops can also reject during Stage 2 (returns to Stage 1, resets finance approval)
 
-## Email Notification System
+**Dependencies**: Prisma, email system
 
-Built with **Nodemailer** via SMTP (Gmail), 10 branded HTML templates:
-
-| # | Event | Template | Recipients |
-|---|---|---|---|
-| 1 | Program Created | [programCreatedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#45-81) | Sales Owner |
-| 2 | Finance Approval Needed | [financeApprovalRequestedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#82-115) | Finance + Admin team |
-| 3 | Budget Approved | [budgetApprovedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#116-146) | Sales Owner |
-| 4 | Handover Ready for Ops | [opsHandoverReadyEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#147-182) | Ops + Admin team |
-| 5 | Handover to Ops | [handoverToOpsEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#183-217) | Assigned Ops SPOC |
-| 6 | Stage Completed | [stageCompletedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#218-257) | Ops Owner |
-| 7 | Program Closed | [programClosedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#258-291) | Sales + Ops + Finance teams |
-| 8 | Finance Rejection | [financeRejectedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#292-333) | Sales Owner |
-| 9 | Ops Rejection | [opsRejectedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#334-376) | Sales Owner |
-| 10 | Program Resubmitted | [programResubmittedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#377-410) | Finance or Ops team |
-| 11 | Program Reopened | [programReopenedEmail](file:///d:/TreOps/TreOpsFlow/src/lib/email-templates.ts#411-458) | Sales + Ops owners |
-
-All emails use a consistent branded template with:
-- Gradient header (`#0b1221` → `#1a2332`) with Trebound logo
-- Orange (`#F26522`) CTA buttons linking to the program detail page
-- Info boxes with program details
-- Footer with copyright notice
+**Status**: Complete. Simultaneous review model working.
 
 ---
 
-## File Upload System
+### Feature 5: Program Detail Page & Stage Forms
 
-### Flow
-1. Client selects file → FormData sent to [uploadFile()](file:///d:/TreOps/TreOpsFlow/src/app/actions/upload.ts#7-53) server action
-2. Server validates: authentication, file size (≤10MB), file type
-3. Buffer converted to base64 → uploaded to ImageKit CDN
-4. Returns `{ url, fileId }` — URL stored in the ProgramCard record
+**Description**: Full program management page with stage-specific forms.
 
-### Capabilities
-- **Upload**: [uploadToImageKit()](file:///d:/TreOps/TreOpsFlow/src/lib/imagekit.ts#29-87) — base64 upload with unique filenames
-- **Delete**: [deleteFromImageKit()](file:///d:/TreOps/TreOpsFlow/src/lib/imagekit.ts#88-105) — cleanup by fileId
-- **Transform**: [getImageKitURL()](file:///d:/TreOps/TreOpsFlow/src/lib/imagekit.ts#106-137) — on-the-fly width/height/quality transforms
+**Files**:
+- `src/app/dashboard/programs/[id]/page.tsx` - Program detail page
+- `src/components/forms/stage1-form.tsx` - Tentative handover form (most complex)
+- `src/components/forms/stage2-accepted-form.tsx` - Ops acceptance form
+- `src/components/forms/stage3-feasibility-form.tsx` - Prep checklist
+- `src/components/forms/stage4-delivery-form.tsx` - Execution data
+- `src/components/forms/stage5-posttrip-form.tsx` - Closure checklist
+- `src/components/forms/stage6-done-view.tsx` - Archived view
+- `src/components/dashboard/stage1-summary.tsx` - Read-only Stage 1 summary
+- `src/components/dashboard/stage-stepper.tsx` - Visual stage progress
 
----
+**How It Works**:
+1. Page fetches program by ID with sales/ops owner relations
+2. Shows rejection feedback if program is rejected
+3. Shows HandoverActions for Finance/Ops at Stage 1
+4. Renders appropriate form based on `currentStage`
+5. Forms validate with Zod schemas and submit via Server Actions
+6. Each form has save (partial) and move-to-next-stage (validates exit criteria) options
 
-## UI Components
-
-### Base UI (22 shadcn/ui components)
-
-`alert`, `badge`, `button`, `calendar`, `card`, `checkbox`, `combobox`, `command`, `dialog`, `file-upload`, `form`, `input`, `label`, `popover`, `rejection-modal`, `scroll-area`, `select`, `separator`, `table`, `tabs`, `textarea`, `toaster`
-
-### Domain Components
-
-| Component | Purpose |
-|---|---|
-| [dashboard-view.tsx](file:///d:/TreOps/TreOpsFlow/src/components/dashboard/dashboard-view.tsx) | List/Board toggle with data table |
-| [kanban-board.tsx](file:///d:/TreOps/TreOpsFlow/src/components/dashboard/kanban-board.tsx) | DnD context with stage columns |
-| [kanban-column.tsx](file:///d:/TreOps/TreOpsFlow/src/components/dashboard/kanban-column.tsx) | Individual stage column |
-| [kanban-card.tsx](file:///d:/TreOps/TreOpsFlow/src/components/dashboard/kanban-card.tsx) | Draggable program card |
-| [stage-transition-modal.tsx](file:///d:/TreOps/TreOpsFlow/src/components/dashboard/stage-transition-modal.tsx) | Confirm stage change dialog |
-| [stage1-summary.tsx](file:///d:/TreOps/TreOpsFlow/src/components/dashboard/stage1-summary.tsx) | Stage 1 data summary display |
-| [handover-actions.tsx](file:///d:/TreOps/TreOpsFlow/src/components/handover-actions.tsx) | Finance approve/reject + Ops accept/reject buttons |
-| [program-details.tsx](file:///d:/TreOps/TreOpsFlow/src/components/program-details.tsx) | Program info display card |
-| [rejection-feedback.tsx](file:///d:/TreOps/TreOpsFlow/src/components/rejection-feedback.tsx) | Rejection reason display with resubmit option |
+**Status**: Complete. Forms are functional but Stage 1 form is very long.
 
 ---
 
-## Dashboard Pages & Routes
+### Feature 6: Reporting & Analytics Dashboard
 
-| Route | Access | Description |
-|---|---|---|
-| `/login` | Public | Email + password login form |
-| `/dashboard` | All authenticated | Main dashboard with List/Board view of all programs |
-| `/dashboard/programs` | All authenticated | Same as dashboard (re-exports) |
-| `/dashboard/programs/new` | Sales, Admin | New program creation form |
-| `/dashboard/programs/[id]` | All authenticated | Program detail with stage-specific form |
-| `/dashboard/pending-approvals` | Finance, Ops, Admin | Queue of programs awaiting review |
-| `/dashboard/reports` | All authenticated | Analytics cards (revenue, active, completed, total) |
-| `/dashboard/settings` | All authenticated | User profile info (read-only) |
-| `/dashboard/team` | Admin only | User management table + add user |
+**Description**: Analytics page with charts showing program statistics, revenue, and team workload.
 
----
+**Files**:
+- `src/app/dashboard/reports/page.tsx` - Reports page
+- `src/components/dashboard/reports-charts.tsx` - Charts and KPI cards
+- `src/app/actions/admin.ts` - `getDashboardStats()`, `getRevenueByType()`, `getFacilitatorWorkload()`, `getMonthlyRevenue()`, `getRecentActivity()`, `getTransportReport()`
 
-## Validation System
+**How It Works**:
+1. Server component fetches multiple aggregate queries
+2. Displays: 4 KPI cards, 6-month revenue trend (area chart), stage distribution (pie chart), revenue by type (bar chart), facilitator workload, recent activity feed, transport tracking
+3. Currency formatting uses Indian notation (Cr, L, K)
 
-Centralized in [validations.ts](file:///d:/TreOps/TreOpsFlow/src/lib/validations.ts):
+**Dependencies**: Recharts, Prisma aggregations
 
-### Field-Level Validations
-- **Email**: Standard regex validation
-- **Phone**: Indian format (10 digits starting with 6–9)
-- **Dates**: No past dates allowed
-- **Pax**: minPax > 0 and minPax ≤ maxPax
-- **Budget**: Must be positive
-- **File Size**: ≤ 10MB
-- **Documents**: PDF, DOC, DOCX, XLS, XLSX only
-- **Media**: JPG, PNG, MP4, MOV, AVI, WMV, WEBM only
-- **ZFD Rating**: 1–5 scale; comments mandatory if ≤ 3 (min 10 chars)
-
-### Stage Exit Criteria (Gate Validations)
-
-| Transition | Mandatory Criteria |
-|---|---|
-| **Stage 1 → 2** | Ops SPOC assigned, Finance approved, Ops accepted, Agenda uploaded |
-| **Stage 2 → 3** | All resources blocked, Logistics locked, Prep complete, ≥1 facilitator |
-| **Stage 3 → 4** | Trip expense sheet uploaded, Packing checklist done |
-| **Stage 4 → 5** | ZFD rating (1-5), Expenses submitted, Ops data updated |
-
-Each validation returns a `{ isValid: boolean, errors: string[] }` result used by the stage transition actions.
+**Status**: Complete. Data is real-time from database.
 
 ---
 
-## Deployment & Configuration
+### Feature 7: Email Notification System
+
+**Description**: Automated email notifications for workflow events.
+
+**Files**:
+- `src/lib/email.ts` - Email transport (nodemailer)
+- `src/lib/email-templates.ts` - 11 HTML email templates
+
+**Templates**:
+1. `programCreatedEmail` - New program notification
+2. `financeApprovalRequestedEmail` - Budget approval request
+3. `budgetApprovedEmail` - Approval confirmation
+4. `opsHandoverReadyEmail` - Handover ready for Ops
+5. `handoverToOpsEmail` - Assignment to Ops SPOC
+6. `stageCompletedEmail` - Stage progression notification
+7. `programClosedEmail` - Program completion
+8. `financeRejectedEmail` - Finance rejection
+9. `opsRejectedEmail` - Ops rejection
+10. `programResubmittedEmail` - Resubmission notification
+11. `programReopenedEmail` - Program reopened
+
+**Status**: Partial. Templates exist but email sending is **stubbed in development** (console.log only). Production uses nodemailer but requires SMTP configuration.
+
+---
+
+### Feature 8: File Upload System
+
+**Description**: Document and media uploads via ImageKit cloud storage.
+
+**Files**:
+- `src/lib/imagekit.ts` - ImageKit SDK integration
+- `src/app/actions/upload.ts` - Upload server action
+- `src/components/ui/file-upload.tsx` - Drag-and-drop upload UI
+
+**How It Works**:
+1. Client selects file via file-upload component
+2. Server action validates file size (10MB max) and type
+3. File converted to base64 and uploaded to ImageKit
+4. Returns URL and file ID for storage in program fields
+5. Supports documents (PDF, DOC, DOCX, XLS, XLSX) and media (JPG, PNG, MP4, MOV, etc.)
+
+**Status**: Complete. Working with ImageKit.
+
+---
+
+### Feature 9: Data Export
+
+**Description**: Multiple export formats for program data.
+
+**Files**:
+- `src/app/api/programs/export/route.ts` - CSV export of all programs
+- `src/app/api/programs/[id]/export-freelancer/route.ts` - Freelancer-safe export (excludes financials)
+- `src/app/api/programs/[id]/helper-sheet/route.ts` - On-ground helper sheet (text)
+- `src/components/freelancer-export-button.tsx` - Export UI with format selection
+
+**Endpoints**:
+- `GET /api/programs/export?stage={1-6}` - CSV with optional stage filter
+- `GET /api/programs/{id}/export-freelancer?format={md|txt}` - Markdown or text
+- `GET /api/programs/{id}/helper-sheet` - Plain text helper sheet
+
+**Status**: Complete. All exports working.
+
+---
+
+### Feature 10: Auto-Logistics Generator
+
+**Description**: Automatically generates logistics checklists based on program type and pax count.
+
+**Files**:
+- `src/app/api/programs/[id]/auto-logistics/route.ts`
+
+**How It Works**:
+1. Reads program type and pax range
+2. Generates base items by type (Team Building, Corporate Outing, Workshop, Adventure)
+3. Adds pax-based extras (50+, 100+, 20+)
+4. Adds transport items if applicable
+5. Returns structured checklist with item count
+
+**Status**: Complete. Logic-based generation, no AI.
+
+---
+
+### Feature 11: Cron Jobs (Scheduled Reminders)
+
+**Description**: 4 scheduled endpoints for automated alerts.
+
+**Files**:
+- `src/app/api/cron/delivery-reminder/route.ts` - Programs with delivery tomorrow
+- `src/app/api/cron/expense-overdue/route.ts` - Expense sheets overdue (>7 days)
+- `src/app/api/cron/timeline-reminder/route.ts` - Programs approaching within 3 days
+- `src/app/api/cron/zfd-alert/route.ts` - Low ZFD ratings (<=3) in last 7 days
+
+**Status**: Partial. Query logic works but **email sending is not integrated** (TODO comments). Only `zfd-alert` has email integration.
+
+---
+
+### Feature 12: Program Return & Reopen
+
+**Description**: Programs can be returned to earlier stages or reopened after completion.
+
+**Files**:
+- `src/app/api/programs/[id]/return/route.ts` - Return to earlier stage
+- `src/app/api/programs/[id]/reopen/route.ts` - Reopen completed program
+- `src/components/dashboard/stage-return-modal.tsx` - Return UI with reason
+- `src/app/actions/stage5.ts` - `reopenProgram()` action
+
+**Status**: Complete. Both return and reopen functional with audit trail.
+
+---
+
+### Feature 13: Team Management
+
+**Description**: Admin user management for creating and viewing team members.
+
+**Files**:
+- `src/app/dashboard/team/page.tsx` - Team list page
+- `src/app/dashboard/team/add-user-form.tsx` - New user form
+- `src/app/actions/admin.ts` - `getUsers()`, `createUser()`
+
+**Status**: Complete. Admin-only access, password hashing on creation.
+
+---
+
+### Feature 14: Dark Mode / Theme Support
+
+**Description**: Light/dark theme toggle using next-themes.
+
+**Files**:
+- `src/components/theme-toggle.tsx` - Toggle button
+- `src/app/globals.css` - CSS variables for both themes
+- `src/app/layout.tsx` - ThemeProvider setup
+
+**Status**: Complete. System-aware with manual toggle.
+
+---
+
+### Feature 15: Program Checklist (Mobile)
+
+**Description**: Mobile-friendly checklist view for on-ground operations.
+
+**Files**:
+- `src/app/dashboard/programs/[id]/checklist/page.tsx`
+- `src/app/dashboard/programs/[id]/checklist/mobile-checklist.tsx`
+
+**Status**: Present. Checklist component exists.
+
+---
+
+### Feature 16: Programs Table View
+
+**Description**: Searchable table view of all programs (alternative to Kanban).
+
+**Files**:
+- `src/app/dashboard/programs/page.tsx` - Table page
+- `src/components/dashboard/programs-table.tsx` - Table with search
+
+**Status**: Complete. Search filters by name, ID, or company.
+
+---
+
+## 3. DATABASE & DATA LAYER
+
+### Database
+
+**PostgreSQL** (production) / **SQLite** (development - `prisma/dev.db`)
+
+### Schema & Models
+
+#### Model: `User`
+| Field | Type | Notes |
+|-------|------|-------|
+| id | String (UUID) | Primary key, auto-generated |
+| name | String | |
+| email | String | Unique constraint |
+| phone | String? | Optional |
+| role | String | "Sales", "Ops", "Finance", "Admin" |
+| password | String | bcrypt-hashed |
+| active | Boolean | Default: true |
+| createdAt | DateTime | Auto-set |
+| updatedAt | DateTime | Auto-updated |
+
+**Relations**: salesPrograms[], opsPrograms[], rejectedPrograms[], transitions[]
+
+#### Model: `ProgramCard` (~240 fields)
+
+**Stage 1 Fields** (Sales Input):
+- `programId` (unique), `programName`, `programType`, `programDates`, `isMultiDayEvent`, `location`
+- `minPax`, `maxPax`, `trainingDays`
+- `clientPOCName`, `clientPOCPhone`, `clientPOCEmail`, `companyName`, `companyAddress`
+- `activityType`, `activitiesCommitted`, `objectives`, `agendaDocument`, `objectiveDocuments`
+- `deliveryBudget`, `billingDetails`, `photoVideoCommitment`
+- Budget breakdown: `budgetVenue`, `budgetTransport`, `budgetActivities`, `budgetFood`, `budgetMiscellaneous`, `budgetNotes`
+- `venuePOC`, `specialVenueReq`, `eventVendorDetails`
+- Approval: `financeApprovalReceived`, `handoverAcceptedByOps`, `handoverIssues`
+- Rejection: `rejectionStatus`, `financeRejectionReason`, `opsRejectionReason`, `rejectedBy`, `rejectedAt`, `resubmissionCount`, `lastResubmittedAt`
+
+**Stage 2 Fields** (Ops Acceptance):
+- `opsSPOCAssignedName`, `handoverChecklistCompleted`, `meetingWithSalesDone`, `opsComments`
+- `opsRejectInAccepted`, `opsRejectInAcceptedReason`
+
+**Stage 3 Fields** (Feasibility):
+- Activity: `confirmActivityAvailability`, `agendaWalkthroughDone`, `confirmFacilitatorsAvailability`
+- Resources: `facilitatorsFreelancersDetails`, `transportationBlocking`, `teamTransportDetails`, `clientTransportDetails`
+- Helpers: `helperBlocking`, `helperDetails`
+- Logistics: `logisticsChecklist`, `logisticsListDocument`, `procurementChecklist`, `finalPacking`
+- Printing: `printHandoverSheet`, `printScoreSheet`, `printLogisticsSheet`, `printBlueprints`
+- Safety: `nearestHospitalDetails`
+
+**Stage 4 Fields** (Delivery):
+- `specialInstructions`, `packingFinalCheckBy`, `onTimeSetup`, `setupDelayDetails`
+- `onGroundLeadGen`, `onGroundBD`, `teamActivitiesExecuted`, `participantCount`
+- `photosVideosUploaded`, `tripExpenseSubmitted`, `photosVideosDriveLink`
+
+**Stage 5 Fields** (Post Trip):
+- `googleReviewDone`, `videoReviewDone`, `sharePicsToClient`, `opsDataEntryDone`
+- `tripExpensesBillsSubmittedToFinance`, `logisticsUnpackingDone`, `logisticsUnpackingComment`
+- `zfdRating` (1-5), `zfdComments`
+
+**Stage 6 Fields** (Done):
+- `closedAt`, `closedBy`, `finalNotes`, `locked`
+
+**Relations**: salesOwner (User), opsOwner (User), rejector (User), stageTransitions[]
+
+#### Model: `StageTransition`
+| Field | Type | Notes |
+|-------|------|-------|
+| id | String (UUID) | Primary key |
+| programCardId | String | FK to ProgramCard |
+| fromStage | Int | Source stage number |
+| toStage | Int | Target stage number |
+| transitionedAt | DateTime | Timestamp |
+| transitionedBy | String | FK to User |
+| approvalNotes | String? | Optional notes/reason |
+
+### Migrations
+
+| Migration | Date | Purpose |
+|-----------|------|---------|
+| `20260119065533_init` | Jan 19 | Initial schema (3 tables) |
+| `20260119100304_add_complete_workflow_fields` | Jan 19 | 31 new stage fields |
+| `20260122104738_add_rejection_system` | Jan 22 | Rejection tracking fields |
+| `20260122121625_add_multi_day_event_field` | Jan 22 | Multi-day event flag |
+
+### Data Access Patterns
+
+- **ORM**: Prisma Client exclusively (no raw queries)
+- **Singleton**: `src/lib/prisma.ts` uses global singleton pattern (prevents hot-reload issues)
+- **Includes**: Relations loaded via `include` on queries (e.g., `salesOwner`, `opsOwner`)
+- **Aggregation**: Prisma `aggregate()` and `groupBy()` for reporting stats
+
+### Data Validation
+
+- **Server-side**: Zod schemas in server actions for form data
+- **Validation library**: `src/lib/validations.ts` with field-level and stage progression validators
+- **Client-side**: react-hook-form with Zod resolvers
+- **File validation**: Size (10MB max), type whitelist (documents + media)
+- **Phone validation**: Indian format (10 digits, starts with 6-9)
+
+---
+
+## 4. APIs & INTEGRATIONS
+
+### Internal API Endpoints
+
+#### Authentication
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET/POST | `/api/auth/[...nextauth]` | NextAuth handler (login, logout, session) |
+
+#### Stage Progression
+| Method | Path | Purpose |
+|--------|------|---------|
+| PUT | `/api/programs/[id]/stage1` | Update Stage 1 fields (with change tracking) |
+| POST | `/api/programs/[id]/stage2/move` | Move Stage 1 -> 2 |
+| PUT | `/api/programs/[id]/stage2` | Update Stage 2 fields |
+| POST | `/api/programs/[id]/stage3/move` | Move Stage 2 -> 3 |
+| PUT | `/api/programs/[id]/stage3` | Update Stage 3 fields |
+| POST | `/api/programs/[id]/stage4/move` | Move Stage 3 -> 4 |
+| PUT | `/api/programs/[id]/stage4` | Update Stage 4 fields |
+| POST | `/api/programs/[id]/stage5/move` | Move Stage 4 -> 5 (closes program) |
+
+#### Program State Management
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/programs/[id]/return` | Return to earlier stage (Ops/Admin) |
+| POST | `/api/programs/[id]/reopen` | Reopen completed program (Admin only) |
+| DELETE | `/api/programs/[id]/delete` | Delete program and transitions (Admin only) |
+
+#### Data Export
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/programs/export?stage=N` | CSV export, optional stage filter |
+| GET | `/api/programs/[id]/export-freelancer?format=md\|txt` | Freelancer-safe export |
+| GET | `/api/programs/[id]/helper-sheet` | On-ground helper sheet (text) |
+
+#### Utilities
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/programs/[id]/auto-logistics` | Auto-generate logistics checklist |
+
+#### Cron Jobs
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/cron/delivery-reminder` | Programs with delivery tomorrow |
+| GET | `/api/cron/expense-overdue` | Expense sheets >7 days overdue |
+| GET | `/api/cron/timeline-reminder` | Programs approaching in 3 days |
+| GET | `/api/cron/zfd-alert` | Low ZFD ratings alert |
+
+### Server Actions (RPC-style)
+
+| Action | File | Purpose |
+|--------|------|---------|
+| `createProgram()` | `actions/program.ts` | Create new program at Stage 1 |
+| `updateStage1()` | `actions/program.ts` | Edit Stage 1 fields |
+| `getPrograms()` | `actions/program.ts` | List all programs |
+| `getProgramById()` | `actions/program.ts` | Get single program with relations |
+| `approveFinance()` | `actions/approval.ts` | Finance budget approval |
+| `acceptHandover()` | `actions/approval.ts` | Ops handover acceptance |
+| `rejectFinance()` | `actions/rejection.ts` | Finance rejection |
+| `rejectOpsHandover()` | `actions/rejection.ts` | Ops rejection at Stage 1 |
+| `rejectOpsInStage2()` | `actions/rejection.ts` | Ops rejection at Stage 2 (returns to S1) |
+| `resubmitProgram()` | `actions/rejection.ts` | Sales resubmission after rejection |
+| `getPendingApprovals()` | `actions/rejection.ts` | Get programs pending approval |
+| `getDashboardStats()` | `actions/admin.ts` | Aggregate dashboard metrics |
+| `getRevenueByType()` | `actions/admin.ts` | Revenue grouped by program type |
+| `getFacilitatorWorkload()` | `actions/admin.ts` | Ops SPOC workload stats |
+| `getMonthlyRevenue()` | `actions/admin.ts` | Last 6 months revenue |
+| `getRecentActivity()` | `actions/admin.ts` | Last 20 stage transitions |
+| `getUsers()` | `actions/admin.ts` | List all users (Admin) |
+| `createUser()` | `actions/admin.ts` | Create new user (Admin) |
+| `uploadFile()` | `actions/upload.ts` | Upload file to ImageKit |
+| `reopenProgram()` | `actions/stage5.ts` | Reopen closed program |
+
+### Third-Party Integrations
+
+| Service | Purpose | SDK/Library | Config |
+|---------|---------|-------------|--------|
+| **ImageKit** | File/document storage | @imagekit/nodejs 7.2.1 | Public key, private key, URL endpoint |
+| **Nodemailer** | Email delivery (SMTP) | nodemailer 7.0.12 | SMTP host, port, user, password |
+| **NextAuth** | Authentication | next-auth 5.0.0-beta.30 | Secret, URL |
+| **Netlify** | Deployment | @netlify/plugin-nextjs | Build command, publish dir |
+
+### Authentication & Authorization
+
+- **Mechanism**: NextAuth v5 Credentials provider with JWT strategy
+- **Password**: bcrypt-hashed (cost factor 10)
+- **Session**: JWT tokens stored in HTTP-only cookies
+- **Middleware**: Checks `authjs.session-token` or `__Secure-authjs.session-token`
+- **Role checks**: Performed in server actions and API routes via `session.user.role`
+- **No API key authentication** for external access
+- **No OAuth/SSO** integration
+
+---
+
+## 5. CONFIGURATION & ENVIRONMENT
 
 ### Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | JWT signing secret |
-| `NEXTAUTH_URL` | App base URL |
-| `NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY` | ImageKit public key |
-| `IMAGEKIT_PRIVATE_KEY` | ImageKit server-side key |
-| `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` | ImageKit CDN URL |
-| `SMTP_HOST` / `SMTP_PORT` | SMTP server config (default: Gmail) |
-| `SMTP_USER` / `SMTP_PASSWORD` | SMTP credentials |
-| `SMTP_FROM` | Sender email address |
-| `NEXT_PUBLIC_APP_URL` | Used in email template links |
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `NEXTAUTH_SECRET` | JWT signing secret (32-byte base64) | Yes |
+| `NEXTAUTH_URL` | Application URL for auth callbacks | Yes |
+| `NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY` | ImageKit public key (client-side) | Yes |
+| `IMAGEKIT_PRIVATE_KEY` | ImageKit private key (server-only) | Yes |
+| `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` | ImageKit URL endpoint | Yes |
+| `SMTP_HOST` / `EMAIL_HOST` | SMTP server hostname | For emails |
+| `SMTP_PORT` / `EMAIL_PORT` | SMTP server port | For emails |
+| `SMTP_USER` / `EMAIL_USER` | SMTP username | For emails |
+| `SMTP_PASSWORD` / `EMAIL_PASS` | SMTP password | For emails |
+| `SMTP_FROM` / `EMAIL_FROM` | From address for emails | For emails |
+| `EMAIL_SECURE` | Use TLS (true/false) | For emails |
+| `NEXT_PUBLIC_APP_URL` | Public application URL | For email links |
+| `NODE_ENV` | Runtime environment | Auto-set |
 
-### Hosting
-- Deployed on **Netlify** with `@netlify/plugin-nextjs`
-- [netlify.toml](file:///d:/TreOps/TreOpsFlow/netlify.toml) configured for Next.js builds
+**Note**: Email env vars have inconsistent naming (`SMTP_*` in .env.example vs `EMAIL_*` in code). The code in `email.ts` uses `EMAIL_*` prefix.
 
----
+### Config Files
 
-## Current Implementation Status
+| File | Purpose |
+|------|---------|
+| `next.config.ts` | React compiler enabled, server actions body size limit (100MB) |
+| `tsconfig.json` | Strict TypeScript, ES2017 target, `@/*` path alias |
+| `postcss.config.mjs` | Tailwind CSS PostCSS plugin |
+| `jest.config.js` | Jest with ts-jest, node environment, path mapping |
+| `netlify.toml` | Netlify build: `prisma generate && npm run build` |
+| `components.json` | Shadcn/ui config: New York style, RSC enabled |
+| `eslint.config.mjs` | Next.js core-web-vitals + TypeScript rules |
+| `prisma.config.ts` | Prisma schema path, classic engine |
 
-### ✅ Fully Implemented
+### Hardcoded Values That Should Be Environment Variables
 
-| Feature | Status |
-|---|---|
-| Authentication (login/logout, session, middleware) | ✅ Complete |
-| Role-based access control (4 roles) | ✅ Complete |
-| 5-stage workflow pipeline | ✅ Complete |
-| Stage 1 form (program creation + edit) | ✅ Complete |
-| Stage 2–4 forms (update + transitions) | ✅ Complete |
-| Stage 5 read-only view | ✅ Complete |
-| Finance approval + rejection | ✅ Complete |
-| Ops handover acceptance + rejection | ✅ Complete |
-| Program resubmission flow | ✅ Complete |
-| Kanban board with drag-and-drop | ✅ Complete |
-| Stage transition modals | ✅ Complete |
-| Email notifications (10+ templates) | ✅ Complete |
-| File upload to ImageKit CDN | ✅ Complete |
-| Pending approvals dashboard | ✅ Complete |
-| Team management (Admin) | ✅ Complete |
-| Reports page (4 metric cards) | ✅ Complete |
-| Settings page (profile view) | ✅ Complete |
-| Validation system (field + gate) | ✅ Complete |
-| Program reopening (Admin) | ✅ Complete |
-| Database seeding scripts | ✅ Complete |
-| Audit trail (StageTransition model) | ✅ Complete |
-| Netlify deployment configuration | ✅ Complete |
-
-### ⚠️ Partially Implemented / Placeholder
-
-| Feature | Status |
-|---|---|
-| Reports — charts/graphs | 🔲 Placeholder UI only (no charting library) |
-| Reports — recent activity feed | 🔲 Hardcoded sample data |
-| Revenue growth percentage | 🔲 Static "+20.1%" text |
-| Application-wide settings | 🔲 Placeholder text only |
-| Root page (`/`) | 🔲 Default Next.js boilerplate (not used) |
-| App metadata (title/description) | 🔲 Default "Create Next App" text |
-
-### 🔲 Not Yet Implemented (per original spec)
-
-| Feature from Spec | Status |
-|---|---|
-| SMS notifications | ❌ Not implemented |
-| Auto-logistics list generation | ❌ Not implemented |
-| Auto-progression timers (Stage 3→4 after 2h) | ❌ Not implemented |
-| Export functionality (Excel, PDF) | ❌ Not implemented |
-| Delivery day reminder (1 day before) | ❌ Not implemented |
-| Expense sheet overdue alerts | ❌ Not implemented |
-| Low ZFD rating alert routing | ❌ Not implemented |
-| Revenue by program type breakdown | ❌ Not implemented |
-| Facilitator workload reports | ❌ Not implemented |
-| Equipment/transport tracking reports | ❌ Not implemented |
-| Card deletion (Admin) | ❌ Not implemented |
-| Mobile-responsive delivery checklist | ❌ Not explicitly done |
-| Program date validation (no past dates) | ⚠️ Defined in validations but not enforced in forms |
+| Value | Location | Recommendation |
+|-------|----------|----------------|
+| `http://localhost:3000` | `email-templates.ts:3` | Already uses `NEXT_PUBLIC_APP_URL` with fallback - OK |
+| `100mb` body size limit | `next.config.ts` | Consider making configurable |
+| `10MB` file upload limit | `validations.ts` | Move to env var |
+| Indian phone regex | `validations.ts` | Move to config if internationalization needed |
+| Ops SPOC names ("Sharath", "Nels", "MK", "Vijay") | Schema/forms | Should be from User table, not hardcoded |
+| `password123`, `arun4321` | `seed.ts` | Development only - acceptable, but warn in docs |
 
 ---
 
-> **Document generated**: March 11, 2026
-> **Source**: In-depth analysis of all source files in `d:\TreOps\TreOpsFlow\`
+## 6. CURRENT BUGS & CODE ISSUES
+
+### Bugs
+
+1. **Duplicate StageTransition Records** (`src/app/actions/stage2.ts`)
+   - `moveToStage3()` creates a StageTransition record, AND the `stage2/move` API route also creates one
+   - Results in duplicate audit trail entries for Stage 2->3 transitions
+
+2. **Stage Naming Mismatch** (`src/app/actions/stage4.ts`)
+   - `moveToStage5()` function actually closes the program (sets `locked: true`, `closedAt`)
+   - The naming suggests it moves to Stage 5, but the behavior is Stage 5->6 closure logic
+   - Stage numbering in actions vs API routes may be off by one in some places
+
+3. **Email Environment Variable Mismatch**
+   - `.env.example` uses `SMTP_*` prefix (SMTP_HOST, SMTP_PORT, etc.)
+   - `src/lib/email.ts` code uses `EMAIL_*` prefix (EMAIL_HOST, EMAIL_PORT, etc.)
+   - Users following .env.example will have non-functional email
+
+4. **Cron Endpoints Have No Authentication**
+   - All 4 cron routes (`/api/cron/*`) have no authentication checks
+   - Anyone can trigger delivery reminders, expense alerts, etc.
+   - Should use a cron secret or API key
+
+### Code Smells & Anti-Patterns
+
+5. **Pervasive `any` Type Usage**
+   - All stage validators use `program: any` parameter
+   - Auth callbacks use `(user as any)`, `(session.user as any)`
+   - ImageKit uses `(ImageKit as any)` type assertion
+   - Component props extensively use `program: any`
+   - **Impact**: No compile-time safety for the primary data model
+
+6. **Date Parsing Logic Duplication**
+   - Same date parsing and urgency badge logic appears in:
+     - `dashboard-view.tsx`
+     - `kanban-card.tsx`
+     - `programs-table.tsx`
+   - Should be extracted to a shared utility
+
+7. **Large Single-Model Design**
+   - ProgramCard has ~240 fields in one table
+   - Could benefit from normalization (stage-specific detail tables)
+   - Makes queries slow as project scales
+
+8. **70+ Console Statements**
+   - `console.log`, `console.error`, `console.warn` scattered across source
+   - Should be removed or replaced with structured logging for production
+
+9. **Legacy/Dead Code**
+   - `stage2-form.tsx` and `stage3-form.tsx` appear to be older versions
+   - `stage5-view.tsx` exists alongside `stage5-posttrip-form.tsx`
+   - `program-form.tsx` alongside `stage1-form.tsx`
+   - These should be audited and removed if unused
+
+10. **Hardcoded Ops SPOC Names**
+    - Names like "Sharath", "Nels", "MK", "Vijay" are hardcoded in forms/schema
+    - Should query from User table where `role = 'Ops'`
+
+### Missing Error Handling
+
+11. **Generic Error Toasts**
+    - Most API calls show generic "Something went wrong" errors
+    - Specific validation errors from server are not displayed to user
+
+12. **No Error Boundaries**
+    - No React error boundaries for component-level error recovery
+    - A single component crash could bring down the entire page
+
+13. **Email Failures Silent**
+    - Email send failures are logged but not surfaced to users
+    - No retry mechanism for failed emails
+
+### Security Concerns
+
+14. **No CSRF Protection on Cron Routes**
+    - Cron endpoints are publicly accessible GET routes
+    - Could be triggered by any crawler or malicious request
+
+15. **No Rate Limiting**
+    - No rate limiting on login endpoint
+    - No rate limiting on API endpoints
+    - Brute force attacks possible
+
+16. **Server Actions Body Size**
+    - `next.config.ts` sets body size limit to `100mb`
+    - Excessively large for most operations, potential DoS vector
+
+---
+
+## 7. TESTING
+
+### Testing Framework
+
+- **Jest 30.3.0** with ts-jest for TypeScript
+- **@testing-library/react 16.3.2** (available but not heavily used)
+- **@testing-library/jest-dom 6.9.1** for DOM assertions
+- **node-mocks-http** for HTTP request/response mocking
+- **Environment**: Node (not jsdom)
+
+### Test Coverage
+
+#### What Is Tested
+
+| File | Tests | Coverage |
+|------|-------|---------|
+| `src/lib/validations.ts` | 30+ test cases | ~100% of validation functions |
+
+**Covered areas**:
+- All utility validators (email, phone, dates, budget, files, ZFD)
+- All 5 stage progression validators (exit criteria for each stage)
+- Stage 1 field validation
+- Edge cases (empty strings, boundary values, null/undefined)
+
+#### What Is NOT Tested
+
+| Area | Files | Impact |
+|------|-------|--------|
+| Server Actions | `src/app/actions/*.ts` (10 files) | High - Core business logic |
+| API Routes | `src/app/api/**/*.ts` (20+ files) | High - Entry points |
+| Components | `src/components/**/*.tsx` (30+ files) | Medium - UI logic |
+| Auth | `src/auth.ts`, `src/middleware.ts` | High - Security |
+| Email | `src/lib/email.ts`, `email-templates.ts` | Medium - Communication |
+| ImageKit | `src/lib/imagekit.ts` | Low - Third-party wrapper |
+
+### Mock Setup
+
+- `__mocks__/prisma.ts` - Prisma client mock with jest.fn() for:
+  - `programCard` (findUnique, findMany, create, update, delete, count, aggregate)
+  - `stageTransition` (create, findMany)
+  - `user` (findUnique, findMany)
+
+### Test Scripts
+
+```json
+"test": "jest --watchAll"
+"test:ci": "jest --ci --coverage --forceExit"
+```
+
+### Test Quality Assessment
+
+- **Existing tests**: Well-structured with good edge case coverage
+- **Overall coverage**: Very low (~5% of codebase)
+- **No integration tests**: No tests for complete workflows
+- **No E2E tests**: No Playwright/Cypress setup
+- **No API route tests**: Despite having node-mocks-http installed
+
+---
+
+## 8. FUTURE REQUIRED CHANGES
+
+### Incomplete Features
+
+1. **Cron Job Email Integration** (`src/app/api/cron/`)
+   - 3 of 4 cron endpoints have TODO comments for email integration
+   - `delivery-reminder`, `expense-overdue`, `timeline-reminder` don't send emails
+   - Only `zfd-alert` has email sending implemented
+
+2. **Settings Page** (`src/app/dashboard/settings/page.tsx`)
+   - Page exists but functionality is unclear/minimal
+   - No user profile editing, no notification preferences
+
+3. **User Deactivation**
+   - `active` field exists on User model
+   - No UI or action to deactivate/reactivate users
+   - Active check not enforced at login
+
+### TODOs and FIXMEs in Code
+
+| Location | Content |
+|----------|---------|
+| `src/app/api/cron/delivery-reminder/route.ts:7` | TODO: Integrate with email provider |
+| `src/app/api/cron/delivery-reminder/route.ts:41` | TODO: Send emails via email provider |
+| `src/app/api/cron/expense-overdue/route.ts:8` | TODO: Integrate with email provider |
+| `src/app/api/cron/timeline-reminder/route.ts:7` | TODO: Integrate with email provider |
+
+### Scalability Bottlenecks
+
+1. **Single Table with 240+ Columns** - ProgramCard will become increasingly slow to query as data grows
+2. **No Pagination** - `getPrograms()` fetches ALL programs without `take`/`skip`
+3. **No Database Indexes** - Schema has no explicit indexes beyond primary keys and unique constraints
+4. **No Connection Pooling Config** - Prisma default connection pool may not handle concurrent load
+5. **Full Program Fetch** - Every query loads all 240 fields; no field selection optimization
+6. **No Caching** - Every page load queries the database directly
+
+### Missing Features
+
+1. **Audit Log UI** - StageTransition records exist but no UI to browse full audit history
+2. **Notifications Center** - No in-app notification system (only email)
+3. **Search & Filter** - Limited search (name/ID/company only); no date, stage, or budget filters
+4. **User Profile** - No profile editing, password change
+5. **Bulk Actions** - No bulk approve, bulk export, bulk stage transition
+6. **Activity Logging** - No logging of who viewed or edited what
+7. **Comments/Notes System** - Limited to stage-specific comment fields; no general commenting
+8. **Dashboard Customization** - Fixed dashboard layout, no widget customization
+9. **Webhook Support** - No webhooks for external system integration
+10. **API Documentation** - No OpenAPI/Swagger docs for API endpoints
+
+### Technical Debt
+
+1. **TypeScript `any` types** - Primary data model has no proper interfaces
+2. **Legacy form components** - Multiple duplicate form files need cleanup
+3. **Console.log statements** - 70+ statements need removal/replacement
+4. **NextAuth beta dependency** - Using pre-release version with potential breaking changes
+5. **Inconsistent env var naming** - SMTP vs EMAIL prefix confusion
+6. **No structured logging** - Console.log is the only logging mechanism
+
+---
+
+## 9. PRODUCTION READINESS CHANGES
+
+### Security
+
+| Issue | Severity | Description |
+|-------|----------|-------------|
+| Unprotected cron endpoints | High | `/api/cron/*` routes have no authentication; add API key or cron secret |
+| No rate limiting | High | Login and API endpoints vulnerable to brute force |
+| No CSRF on state-changing GETs | Medium | Cron endpoints use GET for state-changing operations |
+| 100MB body size limit | Medium | `next.config.ts` allows 100MB server action bodies; reduce to reasonable limit |
+| NextAuth beta | Medium | v5 beta.30 may have security patches pending |
+| No Content Security Policy | Medium | No CSP headers configured |
+| No HSTS headers | Medium | No strict transport security |
+| Seed credentials in repo | Low | Default passwords in seed files (dev-only) |
+| No input sanitization | Low | No XSS sanitization on text fields displayed in UI |
+| Missing CORS configuration | Low | No explicit CORS policy (Next.js defaults) |
+
+### Performance
+
+| Issue | Severity | Description |
+|-------|----------|-------------|
+| No pagination on program queries | High | `getPrograms()` loads ALL records |
+| No database indexes | High | No explicit indexes on frequently queried fields |
+| No caching layer | Medium | Every request hits database directly |
+| 240-field SELECT * queries | Medium | No field selection; loads all columns every time |
+| No image optimization | Low | File URLs served directly from ImageKit |
+| No bundle analysis | Low | No bundle size monitoring or code splitting strategy |
+| Client-side date calculations | Low | Date parsing repeated on render in multiple components |
+
+### Reliability
+
+| Issue | Severity | Description |
+|-------|----------|-------------|
+| No health check endpoint | High | No `/api/health` for load balancer or monitoring |
+| No error tracking | High | No Sentry, Datadog, or similar integration |
+| No structured logging | High | Only console.log; no log levels or aggregation |
+| No React error boundaries | Medium | Component errors crash entire page |
+| No email retry mechanism | Medium | Failed emails are lost silently |
+| No database connection monitoring | Medium | No alerts for connection pool exhaustion |
+| No graceful degradation | Low | No fallback if ImageKit or email service is down |
+
+### DevOps & Deployment
+
+| Issue | Severity | Description |
+|-------|----------|-------------|
+| No CI/CD pipeline | High | No GitHub Actions, no automated testing on PR |
+| No Docker configuration | Medium | No Dockerfile for consistent environments |
+| No staging environment config | Medium | Only dev and implied prod; no staging separation |
+| No database migration strategy | Medium | Manual `prisma migrate deploy` needed |
+| No database backup strategy | Medium | No backup schedules or procedures |
+| No environment validation | Medium | No startup check for required env vars |
+| No monitoring/alerting | Medium | No uptime monitoring or performance alerts |
+| SQLite in dev, PostgreSQL in prod | Low | Different databases between environments |
+
+---
+
+## 10. RECOMMENDED PRIORITY ROADMAP
+
+### Critical - Must Fix Before Launch
+
+1. **Secure Cron Endpoints** - Add API key authentication to all `/api/cron/*` routes. Without this, anyone can trigger reminders and alerts.
+
+2. **Add Rate Limiting** - Implement rate limiting on `/api/auth` and all API routes. Login brute force is currently trivial.
+
+3. **Add Pagination to Program Queries** - `getPrograms()` and dashboard queries currently load ALL records. Will fail with production data volumes.
+
+4. **Add Database Indexes** - Create indexes on: `ProgramCard.currentStage`, `ProgramCard.salesPOCId`, `ProgramCard.opsSPOCId`, `ProgramCard.createdAt`, `ProgramCard.programDates`, `StageTransition.programCardId`.
+
+5. **Fix Environment Variable Naming** - Align `.env.example` with code expectations. The email system won't work for anyone following the example file.
+
+6. **Add Health Check Endpoint** - Create `/api/health` that checks database connectivity.
+
+7. **Set Up CI/CD Pipeline** - Add GitHub Actions workflow for: lint, type-check, test, build.
+
+8. **Fix Duplicate StageTransition Bug** - Stage 2->3 transition creates duplicate audit records. Fix in `actions/stage2.ts`.
+
+9. **Add Error Tracking** - Integrate Sentry or similar for production error monitoring.
+
+10. **Reduce Server Action Body Limit** - Change 100MB to a reasonable limit (e.g., 10-20MB).
+
+### Important - Fix Soon After Launch
+
+11. **Create TypeScript Interfaces** - Define proper `Program`, `User`, `StageTransition` interfaces. Replace all `any` types across 40+ files.
+
+12. **Complete Cron Email Integration** - Wire up email sending in delivery-reminder, expense-overdue, and timeline-reminder endpoints.
+
+13. **Add Structured Logging** - Replace console.log with pino or similar. Add log levels and structured output.
+
+14. **Add React Error Boundaries** - Wrap major sections (dashboard, forms, modals) with error boundaries.
+
+15. **Remove Legacy Components** - Audit and remove unused form components (stage2-form.tsx, stage3-form.tsx, stage5-view.tsx, program-form.tsx).
+
+16. **Add Server-Side Test Coverage** - Write tests for server actions and API routes. Target: approval workflow, rejection flow, stage transitions.
+
+17. **Implement User Active Check** - Enforce `active` field at login time and in middleware. Add UI for user deactivation.
+
+18. **Add CSP and Security Headers** - Configure Content-Security-Policy, X-Frame-Options, HSTS via Next.js headers config.
+
+19. **Dynamic Ops SPOC Selection** - Query active Ops users from database instead of hardcoded names.
+
+20. **Add Database Backup Strategy** - Document and automate PostgreSQL backup schedule.
+
+### Nice to Have - Future Improvements
+
+21. **Extract Date Utilities** - Create shared date parsing and urgency calculation utility.
+
+22. **Add In-App Notifications** - Build notification center for real-time updates.
+
+23. **Implement Optimistic UI Updates** - Kanban board should update immediately on drag with rollback on failure.
+
+24. **Add Audit Log UI** - Build a page to browse StageTransition records with filtering.
+
+25. **Advanced Search & Filters** - Add date range, budget range, stage, and owner filters to program list.
+
+26. **Add E2E Tests** - Set up Playwright for critical user flows.
+
+27. **Normalize ProgramCard Model** - Consider breaking 240-field model into stage-specific tables.
+
+28. **Add Webhook Support** - Allow external systems to subscribe to workflow events.
+
+29. **API Documentation** - Generate OpenAPI/Swagger docs for all endpoints.
+
+30. **Add Docker Configuration** - Create Dockerfile and docker-compose for consistent development and deployment.
+
+31. **Bundle Optimization** - Analyze and optimize client bundle size with code splitting.
+
+32. **Upgrade NextAuth to Stable** - Move from beta.30 to stable release when available.
+
+33. **Add Password Change** - Allow users to change their own passwords.
+
+34. **Implement Bulk Operations** - Bulk approve, bulk export for admin workflows.
+
+35. **Add Dashboard Customization** - Let users configure which widgets they see.
+
+---
+
+*This analysis was generated by reviewing every file in the TreOpsFlow codebase. Findings are based on code inspection as of 2026-03-16.*

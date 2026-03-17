@@ -41,6 +41,7 @@ export async function PUT(
                 printBlueprints: body.printBlueprints,
                 nearestHospitalDetails: body.nearestHospitalDetails,
                 feasibilityComments: body.feasibilityComments,
+                travelPlanComments: body.travelPlanComments,
             },
         })
 
