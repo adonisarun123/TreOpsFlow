@@ -26,12 +26,16 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
       - name: Run linter
         run: npm run lint
 
       - name: Run tests
         run: npm run test:ci
+        env:
+          DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
       - name: Upload coverage report
         if: always()
