@@ -21,7 +21,8 @@ export async function POST(
     const { id } = await params
 
     // Parse form data from request body (sent by Stage2AcceptedForm)
-    let body: any = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let body: Record<string, any> = {}
     try {
         body = await request.json()
     } catch {

@@ -1,3 +1,5 @@
+import type { ProgramCard } from "@/types"
+
 /**
  * Validation utilities for Trebound Workflow
  * Updated for 6-stage pipeline:
@@ -83,7 +85,7 @@ export interface ValidationResult {
  * Note: Agenda document is optional at this stage
  * Note: Ops SPOC is no longer required before Finance approval
  */
-export const canProgressFromStage1 = (program: any): ValidationResult => {
+export const canProgressFromStage1 = (program: Partial<ProgramCard>): ValidationResult => {
     const errors: string[] = [];
 
     // Finance approval required
@@ -104,7 +106,7 @@ export const canProgressFromStage1 = (program: any): ValidationResult => {
  * - Meeting with Sales POC done
  * - Handover accepted by Ops
  */
-export const canProgressFromStage2 = (program: any): ValidationResult => {
+export const canProgressFromStage2 = (program: Partial<ProgramCard>): ValidationResult => {
     const errors: string[] = [];
 
     // Ops SPOC must be assigned
@@ -137,7 +139,7 @@ export const canProgressFromStage2 = (program: any): ValidationResult => {
  * - Final packing done
  * - Logistics checklist done
  */
-export const canProgressFromStage3 = (program: any): ValidationResult => {
+export const canProgressFromStage3 = (program: Partial<ProgramCard>): ValidationResult => {
     const errors: string[] = [];
 
     if (!program.confirmActivityAvailability) {
@@ -172,7 +174,7 @@ export const canProgressFromStage3 = (program: any): ValidationResult => {
  * - Participant count filled
  * - Team activities listed
  */
-export const canProgressFromStage4 = (program: any): ValidationResult => {
+export const canProgressFromStage4 = (program: Partial<ProgramCard>): ValidationResult => {
     const errors: string[] = [];
 
     if (!program.participantCount) {
@@ -196,7 +198,7 @@ export const canProgressFromStage4 = (program: any): ValidationResult => {
  * - Expenses/bills submitted to finance
  * - Ops data entry done
  */
-export const canProgressFromStage5 = (program: any): ValidationResult => {
+export const canProgressFromStage5 = (program: Partial<ProgramCard>): ValidationResult => {
     const errors: string[] = [];
 
     // ZFD rating required
@@ -227,7 +229,8 @@ export const canProgressFromStage5 = (program: any): ValidationResult => {
 /**
  * General field-level validations for Stage 1
  */
-export const validateStage1Fields = (data: any): ValidationResult => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const validateStage1Fields = (data: Record<string, any>): ValidationResult => {
     const errors: string[] = [];
 
     // Required fields
@@ -299,7 +302,7 @@ export const getStageName = (stage: number): string => {
 /**
  * Helper function to validate all exit criteria based on current stage
  */
-export const validateStageProgression = (program: any): ValidationResult => {
+export const validateStageProgression = (program: Partial<ProgramCard>): ValidationResult => {
     switch (program.currentStage) {
         case 1:
             return canProgressFromStage1(program);

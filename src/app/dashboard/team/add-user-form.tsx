@@ -24,7 +24,7 @@ export function AddUserForm() {
             name: formData.get('name') as string,
             email: formData.get('email') as string,
             password: formData.get('password') as string,
-            role: formData.get('role') as any
+            role: formData.get('role') as "Admin" | "Sales" | "Ops" | "Finance"
         }
 
         const result = await createUser(data)

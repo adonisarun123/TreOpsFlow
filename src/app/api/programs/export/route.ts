@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const stageFilter = searchParams.get('stage')
 
     try {
-        const where: any = {}
+        const where: { currentStage?: number } = {}
         if (stageFilter) {
             const stage = parseInt(stageFilter)
             if (stage >= 1 && stage <= 6) where.currentStage = stage

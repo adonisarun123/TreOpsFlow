@@ -55,8 +55,8 @@ export function RejectionModal({
             // Reset and close on success
             setReason("")
             onClose()
-        } catch (err: any) {
-            setError(err.message || "Failed to submit rejection")
+        } catch (err: unknown) {
+            setError((err as Error)?.message || "Failed to submit rejection")
         } finally {
             setIsSubmitting(false)
         }
@@ -92,7 +92,7 @@ export function RejectionModal({
                             disabled={isSubmitting}
                         />
                         <p className="text-xs text-gray-500">
-                            Minimum 10 characters. Be specific about why you're rejecting.
+                            Minimum 10 characters. Be specific about why you&apos;re rejecting.
                         </p>
                     </div>
 

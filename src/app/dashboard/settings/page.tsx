@@ -11,11 +11,11 @@ import { NotificationToggles } from "@/components/settings/notification-toggle"
 
 export default async function SettingsPage() {
     const session = await auth()
-    const user = session?.user as any
+    const user = session?.user as { name?: string; email?: string; role?: string } | undefined
     const isAdmin = user?.role === 'Admin'
 
     const settings = await getAppSettings()
-    const settingsMap = Object.fromEntries((settings as any[]).map((s: any) => [s.key, s.value]))
+    const settingsMap = Object.fromEntries((settings as { key: string; value: string }[]).map((s) => [s.key, s.value]))
 
     return (
         <div className="space-y-6">

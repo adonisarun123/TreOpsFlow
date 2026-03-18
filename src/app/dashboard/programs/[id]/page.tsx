@@ -14,7 +14,7 @@ import { getStageName } from "@/lib/validations"
 import { StageStepper } from "@/components/dashboard/stage-stepper"
 import { ArrowLeft, Building2, MapPin, CalendarIcon, User } from "lucide-react"
 import Link from "next/link"
-import { format } from "date-fns"
+// date-fns format available if needed
 import { formatProgramDate } from "@/lib/date-utils"
 import { FreelancerExportButton } from "@/components/freelancer-export-button"
 import { getAppSettings } from "@/app/actions/settings"
@@ -26,7 +26,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
 
     // Fetch sheet URLs for Stage 5 form
     const settings = await getAppSettings()
-    const settingsMap = Object.fromEntries((settings as any[]).map((s: any) => [s.key, s.value]))
+    const settingsMap = Object.fromEntries((settings as { key: string; value: string }[]).map((s) => [s.key, s.value]))
     const sheetUrls = {
         opsDataEntrySheetUrl: settingsMap['opsDataEntrySheetUrl'] || '',
         tripExpenseSheetUrl: settingsMap['tripExpenseSheetUrl'] || '',
@@ -36,8 +36,8 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
         notFound()
     }
 
-    const userRole = (session?.user as any).role
-    const userId = (session?.user as any).id
+    const userRole = (session?.user as { role: string }).role
+    const userId = (session?.user as { id: string }).id
     const isOwner = program.salesPOCId === userId
     const isOpsOrAdmin = userRole === 'Ops' || userRole === 'Admin'
 

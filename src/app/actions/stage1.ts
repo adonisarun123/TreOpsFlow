@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+// redirect is available if needed for future navigation flows
 import { sendEmail } from "@/lib/email"
 import { programCreatedEmail, financeApprovalRequestedEmail } from "@/lib/email-templates"
 
@@ -11,14 +11,15 @@ import { programCreatedEmail, financeApprovalRequestedEmail } from "@/lib/email-
  * Create a new program card (Stage 1)
  * Assigns salesPOCId from current session
  */
-export async function createProgram(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function createProgram(data: Record<string, any>) {
     const session = await auth()
 
     if (!session?.user) {
         return { error: "Unauthorized" }
     }
 
-    const userId = (session.user as any).id
+    const userId = (session.user as { id: string }).id
 
     try {
         // Generate unique program ID
@@ -154,7 +155,8 @@ export async function createProgram(data: any) {
 /**
  * Update Stage 1 fields for existing program
  */
-export async function updateStage1(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateStage1(id: string, data: Record<string, any>) {
     const session = await auth()
 
     if (!session?.user) {

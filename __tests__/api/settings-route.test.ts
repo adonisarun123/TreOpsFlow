@@ -8,7 +8,7 @@ const mockFindMany = jest.fn()
 jest.mock('@/lib/prisma', () => ({
     prisma: {
         appSetting: {
-            findMany: (...args: any[]) => mockFindMany(...args),
+            findMany: (...args: unknown[]) => mockFindMany(...args),
         },
     },
 }))

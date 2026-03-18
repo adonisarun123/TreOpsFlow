@@ -51,9 +51,9 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         })
 
         return { success: true }
-    } catch (error: any) {
-        console.error('[EMAIL ERROR]', error?.message)
-        return { success: false, error: error?.message }
+    } catch (error: unknown) {
+        console.error('[EMAIL ERROR]', (error as Error)?.message)
+        return { success: false, error: (error as Error)?.message }
     }
 }
 

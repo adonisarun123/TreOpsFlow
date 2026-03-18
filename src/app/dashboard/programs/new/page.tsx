@@ -9,7 +9,7 @@ export default async function NewProgramPage() {
         redirect("/login")
     }
 
-    const userRole = (session.user as any)?.role
+    const userRole = (session.user as { role?: string })?.role
 
     // Only Sales and Admin can create programs
     if (userRole !== "Sales" && userRole !== "Admin") {

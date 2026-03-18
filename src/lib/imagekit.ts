@@ -20,6 +20,7 @@ if (!process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT) {
 
 // ImageKit client configuration
 // SDK v7 has incorrect TypeScript definitions - using type assertion
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const imagekit = new (ImageKit as any)({
     publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
@@ -69,19 +70,20 @@ export const uploadToImageKit = async (
             fileId: uploadResponse.fileId
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('❌ ImageKit upload failed:', error);
 
         // Provide helpful error messages
-        if (error.message?.includes('signature')) {
+        const errMsg = (error as Error)?.message;
+        if (errMsg?.includes('signature')) {
             throw new Error('ImageKit authentication failed. Check your IMAGEKIT_PRIVATE_KEY is correct.');
         }
 
-        if (error.message?.includes('publicKey')) {
+        if (errMsg?.includes('publicKey')) {
             throw new Error('ImageKit public key invalid. Check your NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY.');
         }
 
-        throw new Error(`ImageKit upload error: ${error.message || error.toString()}`);
+        throw new Error(`ImageKit upload error: ${errMsg || String(error)}`);
     }
 };
 
@@ -97,9 +99,9 @@ export const deleteFromImageKit = async (fileId: string): Promise<void> => {
     try {
         await imagekit.files.delete(fileId);
         console.log(`🗑️  Deleted file: ${fileId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('❌ ImageKit delete failed:', error);
-        throw new Error(`Failed to delete file: ${error.message || error.toString()}`);
+        throw new Error(`Failed to delete file: ${(error as Error)?.message || String(error)}`);
     }
 };
 

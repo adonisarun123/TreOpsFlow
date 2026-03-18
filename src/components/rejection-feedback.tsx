@@ -7,9 +7,10 @@ import { resubmitProgram } from "@/app/actions/rejection"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { showToast } from "./ui/toaster"
+import type { ProgramCard } from "@/types"
 
 interface RejectionFeedbackProps {
-    program: any
+    program: ProgramCard
     isOwner: boolean
 }
 
@@ -67,7 +68,7 @@ export function RejectionFeedback({ program, isOwner }: RejectionFeedbackProps) 
                             <li>Review your budget and pricing strategy</li>
                             <li>Adjust the delivery budget or billing details</li>
                             <li>Update any relevant program information</li>
-                            <li>Click "Edit & Resubmit" when ready</li>
+                            <li>Click &quot;Edit &amp; Resubmit&quot; when ready</li>
                         </ul>
                     )}
                     {isOpsRejection && (
@@ -75,7 +76,7 @@ export function RejectionFeedback({ program, isOwner }: RejectionFeedbackProps) 
                             <li>Discuss new dates or scope with your client</li>
                             <li>Address the concerns raised by the Ops team</li>
                             <li>Update program dates, location, or requirements</li>
-                            <li>Click "Edit & Resubmit" when ready</li>
+                            <li>Click &quot;Edit &amp; Resubmit&quot; when ready</li>
                         </ul>
                     )}
                 </div>

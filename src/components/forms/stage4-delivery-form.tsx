@@ -11,7 +11,6 @@ import {
     FormField,
     FormItem,
     FormLabel,
-    FormMessage,
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -21,6 +20,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, Save, ArrowRight, Truck, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
+import type { ProgramCard } from "@/types"
 
 const stage4Schema = z.object({
     specialInstructions: z.string().optional(),
@@ -39,7 +39,7 @@ const stage4Schema = z.object({
 })
 
 interface Stage4DeliveryFormProps {
-    program: any
+    program: ProgramCard
     isReadOnly?: boolean
     onSuccess?: () => void
     onSaveOnly?: () => void
@@ -51,13 +51,14 @@ export function Stage4DeliveryForm({
     isReadOnly = false,
     onSuccess,
     onSaveOnly,
-    isTransitioningToThisStage = false
+    isTransitioningToThisStage: _isTransitioningToThisStage = false
 }: Stage4DeliveryFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
     const router = useRouter()
 
     const form = useForm<z.infer<typeof stage4Schema>>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(stage4Schema) as any,
         defaultValues: {
             specialInstructions: program.specialInstructions || "",
@@ -91,8 +92,8 @@ export function Stage4DeliveryForm({
                 if (onSaveOnly) onSaveOnly()
                 else router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed to save"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed to save"}`, "error")
         } finally {
             setIsLoading(false)
         }
@@ -115,8 +116,8 @@ export function Stage4DeliveryForm({
                 if (onSuccess) onSuccess()
                 else router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed"}`, "error")
         } finally {
             setIsTransitioning(false)
         }

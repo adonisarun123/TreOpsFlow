@@ -44,7 +44,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const user = session.user as any
+    const user = session.user as { id: string; name: string; email: string; role: string }
 
     try {
         // Get current program to detect changes
@@ -58,12 +58,13 @@ export async function PUT(
         if (!current) return NextResponse.json({ error: "Program not found" }, { status: 404 })
 
         // Build update data
-        const updateData: any = {}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const updateData: Record<string, any> = {}
         const changes: { field: string; from: string; to: string }[] = []
 
         for (const field of TRACKED_FIELDS) {
             if (body[field] !== undefined) {
-                const oldVal = String((current as any)[field] ?? '')
+                const oldVal = String((current as Record<string, unknown>)[field] ?? '')
                 const newVal = String(body[field] ?? '')
                 if (oldVal !== newVal) {
                     changes.push({

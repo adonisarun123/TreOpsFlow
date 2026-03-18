@@ -23,7 +23,7 @@ export function StageStepper({ currentStage, compact = false }: StageStepperProp
                 {STAGES.map((stage, index) => {
                     const isCompleted = currentStage > stage.id
                     const isCurrent = currentStage === stage.id
-                    const isUpcoming = currentStage < stage.id
+                    // eslint-unused: const isUpcoming = currentStage < stage.id
 
                     const dotColors: Record<string, { done: string; active: string; ring: string }> = {
                         amber:   { done: "bg-amber-500",   active: "bg-amber-500",   ring: "ring-amber-200 dark:ring-amber-800" },

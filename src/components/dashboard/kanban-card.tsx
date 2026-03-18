@@ -2,12 +2,13 @@
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { CalendarIcon, User, Building2, Eye, GripVertical } from "lucide-react"
+import { CalendarIcon, Building2, Eye, GripVertical } from "lucide-react"
 import { formatProgramDate, getTimelineBadge } from "@/lib/date-utils"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface KanbanCardProps {
-    program: any
-    onCardClick?: (program: any) => void
+    program: ProgramWithSalesOwner
+    onCardClick?: (program: ProgramWithSalesOwner) => void
 }
 
 const STAGE_ACCENT_COLORS: Record<number, string> = {

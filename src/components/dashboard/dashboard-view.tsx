@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
+// eslint-unused: import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+// eslint-unused: import {
+//     Table,
+//     TableBody,
+//     TableCell,
+//     TableHead,
+//     TableHeader,
+//     TableRow,
+// } from "@/components/ui/table"
+import type { ProgramWithSalesOwner } from "@/types"
 import dynamic from "next/dynamic"
 
 const KanbanBoard = dynamic(
@@ -25,56 +26,56 @@ import {
     AlertCircle,
     Download,
 } from "lucide-react"
-import { format } from "date-fns"
+// eslint-unused: import { format } from "date-fns"
 
 interface DashboardViewProps {
-    programs: any[]
+    programs: ProgramWithSalesOwner[]
     userRole: string
 }
 
 const STAGE_NAMES = ["", "Tentative", "Accepted", "Feasibility", "Delivery", "Post Trip", "Done"]
 
-function getStageClass(stage: number) {
-    return `stage-badge-${stage}`
-}
+// eslint-unused: function getStageClass(stage: number) {
+//     return `stage-badge-${stage}`
+// }
 
-function formatDate(dateStr: string | null) {
-    if (!dateStr) return "N/A"
-    try {
-        const parsed = JSON.parse(dateStr)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            return format(new Date(parsed[0]), "dd MMM yyyy")
-        }
-    } catch {
-        try {
-            return format(new Date(dateStr), "dd MMM yyyy")
-        } catch {
-            return dateStr
-        }
-    }
-    return "N/A"
-}
+// eslint-unused: function formatDate(dateStr: string | null) {
+//     if (!dateStr) return "N/A"
+//     try {
+//         const parsed = JSON.parse(dateStr)
+//         if (Array.isArray(parsed) && parsed.length > 0) {
+//             return format(new Date(parsed[0]), "dd MMM yyyy")
+//         }
+//     } catch {
+//         try {
+//             return format(new Date(dateStr), "dd MMM yyyy")
+//         } catch {
+//             return dateStr
+//         }
+//     }
+//     return "N/A"
+// }
 
-function getTimelineBadge(dateStr: string | null, currentStage: number) {
-    if (!dateStr || currentStage >= 6) return null
-    try {
-        let parsedDate: Date | null = null
-        try {
-            const parsed = JSON.parse(dateStr)
-            if (Array.isArray(parsed) && parsed.length > 0) parsedDate = new Date(parsed[0])
-        } catch {
-            parsedDate = new Date(dateStr)
-        }
-        if (!parsedDate || isNaN(parsedDate.getTime())) return null
-        const today = new Date(); today.setHours(0,0,0,0); parsedDate.setHours(0,0,0,0)
-        const days = Math.ceil((parsedDate.getTime() - today.getTime()) / 86400000)
-        if (days < 0) return { label: `${Math.abs(days)}d ago`, cls: "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300" }
-        if (days === 0) return { label: "Today", cls: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 animate-pulse" }
-        if (days <= 3) return { label: `${days}d`, cls: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" }
-        if (days <= 7) return { label: `${days}d`, cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" }
-        return { label: `${days}d`, cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" }
-    } catch { return null }
-}
+// eslint-unused: function getTimelineBadge(dateStr: string | null, currentStage: number) {
+//     if (!dateStr || currentStage >= 6) return null
+//     try {
+//         let parsedDate: Date | null = null
+//         try {
+//             const parsed = JSON.parse(dateStr)
+//             if (Array.isArray(parsed) && parsed.length > 0) parsedDate = new Date(parsed[0])
+//         } catch {
+//             parsedDate = new Date(dateStr)
+//         }
+//         if (!parsedDate || isNaN(parsedDate.getTime())) return null
+//         const today = new Date(); today.setHours(0,0,0,0); parsedDate.setHours(0,0,0,0)
+//         const days = Math.ceil((parsedDate.getTime() - today.getTime()) / 86400000)
+//         if (days < 0) return { label: `${Math.abs(days)}d ago`, cls: "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300" }
+//         if (days === 0) return { label: "Today", cls: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 animate-pulse" }
+//         if (days <= 3) return { label: `${days}d`, cls: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" }
+//         if (days <= 7) return { label: `${days}d`, cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" }
+//         return { label: `${days}d`, cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" }
+//     } catch { return null }
+// }
 
 export function DashboardView({ programs, userRole }: DashboardViewProps) {
     const isSales = userRole === 'Sales' || userRole === 'Admin'

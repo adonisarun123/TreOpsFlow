@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -28,6 +27,7 @@ import { Loader2, Save, ArrowRight, Users, X, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
 import { RejectionModal } from "@/components/ui/rejection-modal"
+import type { ProgramCard } from "@/types"
 
 const stage2Schema = z.object({
     opsSPOCAssignedName: z.string().min(1, "Please select an Ops POC"),
@@ -37,7 +37,7 @@ const stage2Schema = z.object({
 })
 
 interface Stage2AcceptedFormProps {
-    program: any
+    program: ProgramCard
     isReadOnly?: boolean
     onSuccess?: () => void
     onSaveOnly?: () => void
@@ -49,7 +49,7 @@ export function Stage2AcceptedForm({
     isReadOnly = false,
     onSuccess,
     onSaveOnly,
-    isTransitioningToThisStage = false
+    isTransitioningToThisStage: _isTransitioningToThisStage = false
 }: Stage2AcceptedFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
@@ -57,6 +57,7 @@ export function Stage2AcceptedForm({
     const router = useRouter()
 
     const form = useForm<z.infer<typeof stage2Schema>>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(stage2Schema) as any,
         defaultValues: {
             opsSPOCAssignedName: program.opsSPOCAssignedName || "",
@@ -86,8 +87,8 @@ export function Stage2AcceptedForm({
                     router.refresh()
                 }
             }
-        } catch (error: any) {
-            const errorMsg = error?.message || "Failed to save"
+        } catch (error: unknown) {
+            const errorMsg = (error as Error)?.message || "Failed to save"
             showToast(`Error: ${errorMsg}`, "error")
         } finally {
             setIsLoading(false)
@@ -117,8 +118,8 @@ export function Stage2AcceptedForm({
                     router.refresh()
                 }
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed"}`, "error")
         } finally {
             setIsTransitioning(false)
         }
@@ -135,8 +136,8 @@ export function Stage2AcceptedForm({
                 showToast("Handover rejected — returned to Sales", "success")
                 router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed"}`, "error")
         }
     }
 

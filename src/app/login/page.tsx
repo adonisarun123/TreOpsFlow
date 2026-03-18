@@ -58,7 +58,7 @@ export default function LoginPage() {
                 router.push("/dashboard")
                 router.refresh()
             }
-        } catch (e) {
+        } catch (_e) {
             setError("Something went wrong")
         } finally {
             setIsLoading(false)
@@ -74,11 +74,7 @@ export default function LoginPage() {
                 <div className="relative z-10 flex flex-col justify-between p-12 w-full">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <Image src="/logo.png" alt="Knot by Trebound" width={44} height={44} className="rounded-xl" />
-                            <div>
-                                <h1 className="text-2xl font-bold text-white">Knot</h1>
-                                <p className="text-indigo-200 text-sm -mt-0.5">by Trebound</p>
-                            </div>
+                            <Image src="/logo.png" alt="Knot by Trebound" width={200} height={200} className="rounded-xl" />
                         </div>
                     </div>
 

@@ -10,7 +10,7 @@ export async function POST(
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const user = session.user as any
+    const user = session.user as { id: string; role: string }
     if (user.role !== 'Admin') {
         return NextResponse.json({ error: "Only Admin can reopen programs" }, { status: 403 })
     }

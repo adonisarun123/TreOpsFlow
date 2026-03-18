@@ -2,8 +2,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import type { ProgramWithOwners } from "@/types"
 
-export function ProgramDetailsView({ program }: { program: any }) {
+export function ProgramDetailsView({ program }: { program: ProgramWithOwners }) {
     let date = "N/A"
     try {
         if (program.programDates) {
@@ -11,7 +12,7 @@ export function ProgramDetailsView({ program }: { program: any }) {
             // Just display it directly
             date = program.programDates
         }
-    } catch (e) { }
+    } catch (_e) { }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

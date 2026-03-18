@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '20mb', // Supports file uploads (10MB validation limit + overhead)
     },
-  } as any, // Type assertion needed for experimental features
+  } as NextConfig["experimental"], // Type assertion for experimental features
 
   // Security headers
   async headers() {

@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { formatProgramDate, getTimelineBadge as getTimelineBadgeUtil } from "@/lib/date-utils"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface PaginationInfo {
     page: number
@@ -32,7 +33,7 @@ interface PaginationInfo {
 }
 
 interface ProgramsTableProps {
-    programs: any[]
+    programs: ProgramWithSalesOwner[]
     userRole: string
     pagination?: PaginationInfo
 }
@@ -79,8 +80,8 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
         setSearchQuery(value)
         if (pagination) {
             // Debounce navigation for server search
-            clearTimeout((window as any).__searchTimer)
-            ;(window as any).__searchTimer = setTimeout(() => {
+            clearTimeout((window as unknown as { __searchTimer: ReturnType<typeof setTimeout> }).__searchTimer)
+            ;(window as unknown as { __searchTimer: ReturnType<typeof setTimeout> }).__searchTimer = setTimeout(() => {
                 navigateWithParams({ search: value || undefined, page: '1' })
             }, 400)
         }
@@ -141,7 +142,7 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
                                 <TableCell colSpan={6} className="text-center h-48 text-muted-foreground">
                                     <div className="flex flex-col items-center gap-2">
                                         <FolderOpen className="h-8 w-8 text-muted-foreground/30" />
-                                        <p>No programs found matching "{searchQuery}"</p>
+                                        <p>No programs found matching &quot;{searchQuery}&quot;</p>
                                     </div>
                                 </TableCell>
                             </TableRow>

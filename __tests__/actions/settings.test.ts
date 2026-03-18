@@ -11,9 +11,9 @@ const mockUpsert = jest.fn()
 jest.mock('@/lib/prisma', () => ({
     prisma: {
         appSetting: {
-            findMany: (...args: any[]) => mockFindMany(...args),
-            findUnique: (...args: any[]) => mockFindUnique(...args),
-            upsert: (...args: any[]) => mockUpsert(...args),
+            findMany: (...args: unknown[]) => mockFindMany(...args),
+            findUnique: (...args: unknown[]) => mockFindUnique(...args),
+            upsert: (...args: unknown[]) => mockUpsert(...args),
         },
     },
 }))

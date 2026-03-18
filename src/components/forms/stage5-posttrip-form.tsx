@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, Save, Archive, CheckCircle, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
+import type { ProgramCard } from "@/types"
 
 const stage5Schema = z.object({
     googleReviewDone: z.boolean().default(false),
@@ -36,7 +37,7 @@ const stage5Schema = z.object({
 })
 
 interface Stage5PostTripFormProps {
-    program: any
+    program: ProgramCard
     isReadOnly?: boolean
     onSuccess?: () => void
     onSaveOnly?: () => void
@@ -49,7 +50,7 @@ export function Stage5PostTripForm({
     isReadOnly = false,
     onSuccess,
     onSaveOnly,
-    isTransitioningToThisStage = false,
+    isTransitioningToThisStage: _isTransitioningToThisStage = false,
     sheetUrls
 }: Stage5PostTripFormProps) {
     const [isLoading, setIsLoading] = useState(false)
@@ -57,6 +58,7 @@ export function Stage5PostTripForm({
     const router = useRouter()
 
     const form = useForm<z.infer<typeof stage5Schema>>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(stage5Schema) as any,
         defaultValues: {
             googleReviewDone: program.googleReviewDone || false,
@@ -67,7 +69,7 @@ export function Stage5PostTripForm({
             opsExpenseStatementSubmittedToSales: program.opsExpenseStatementSubmittedToSales || false,
             logisticsUnpackingDone: program.logisticsUnpackingDone || false,
             logisticsUnpackingComment: program.logisticsUnpackingComment || "",
-            zfdRating: program.zfdRating ?? '',
+            zfdRating: program.zfdRating ?? undefined,
             zfdComments: program.zfdComments || "",
         },
     })
@@ -87,8 +89,8 @@ export function Stage5PostTripForm({
                 if (onSaveOnly) onSaveOnly()
                 else router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed to save"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed to save"}`, "error")
         } finally {
             setIsLoading(false)
         }
@@ -111,14 +113,14 @@ export function Stage5PostTripForm({
                 if (onSuccess) onSuccess()
                 else router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed"}`, "error")
         } finally {
             setIsTransitioning(false)
         }
     }
 
-    const YesNoItem = ({ name, label }: { name: any, label: string }) => (
+    const YesNoItem = ({ name, label }: { name: keyof z.infer<typeof stage5Schema>, label: string }) => (
         <FormField
             control={form.control}
             name={name}

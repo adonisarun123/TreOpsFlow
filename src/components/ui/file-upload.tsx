@@ -67,9 +67,9 @@ export function FileUpload({
                 showToast(`Upload Error: ${errorMsg}`, "error")
                 console.error("Upload failed:", result)
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             // Show detailed error from exception
-            const errorMsg = e?.message || e?.toString() || "Error uploading file"
+            const errorMsg = (e as Error)?.message || String(e) || "Error uploading file"
             showToast(`Upload Error: ${errorMsg}`, "error")
             console.error("Upload exception:", e)
         } finally {

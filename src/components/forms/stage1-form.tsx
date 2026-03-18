@@ -16,36 +16,36 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Combobox, ComboboxOption } from "@/components/ui/combobox"
+// ComboboxOption available from @/components/ui/combobox if needed
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useState, useEffect } from "react"
 import { createProgram, updateStage1 } from "@/app/actions/stage1"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, ArrowRight, CalendarIcon, Info } from "lucide-react"
+import { Loader2, ArrowRight, CalendarIcon, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileUpload } from "@/components/ui/file-upload"
 import { showToast } from "@/components/ui/toaster"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
-// Dropdown options
-const PROGRAM_TYPE_OPTIONS: ComboboxOption[] = [
-    { value: "Team Building", label: "Team Building" },
-    { value: "Leadership Development", label: "Leadership Development" },
-    { value: "Training Workshop", label: "Training Workshop" },
-    { value: "Corporate Outing", label: "Corporate Outing" },
-    { value: "Other", label: "Other" },
-]
-
-const ACTIVITY_TYPE_OPTIONS: ComboboxOption[] = [
-    { value: "Outdoor", label: "Outdoor" },
-    { value: "Indoor", label: "Indoor" },
-    { value: "Mixed", label: "Mixed" },
-    { value: "Virtual", label: "Virtual" },
-    { value: "Hybrid", label: "Hybrid" },
-]
+// eslint-unused: Dropdown options
+// eslint-unused: const PROGRAM_TYPE_OPTIONS: ComboboxOption[] = [
+// eslint-unused:     { value: "Team Building", label: "Team Building" },
+// eslint-unused:     { value: "Leadership Development", label: "Leadership Development" },
+// eslint-unused:     { value: "Training Workshop", label: "Training Workshop" },
+// eslint-unused:     { value: "Corporate Outing", label: "Corporate Outing" },
+// eslint-unused:     { value: "Other", label: "Other" },
+// eslint-unused: ]
+// eslint-unused:
+// eslint-unused: const ACTIVITY_TYPE_OPTIONS: ComboboxOption[] = [
+// eslint-unused:     { value: "Outdoor", label: "Outdoor" },
+// eslint-unused:     { value: "Indoor", label: "Indoor" },
+// eslint-unused:     { value: "Mixed", label: "Mixed" },
+// eslint-unused:     { value: "Virtual", label: "Virtual" },
+// eslint-unused:     { value: "Hybrid", label: "Hybrid" },
+// eslint-unused: ]
 
 // Validation schema for Stage 1
 const stage1Schema = z.object({
@@ -114,7 +114,8 @@ const stage1Schema = z.object({
     path: ["maxPax"]
 })
 
-export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?: boolean }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function Stage1Form({ program, isEdit = false }: { program?: Record<string, any>, isEdit?: boolean }) {
     const [isLoading, setIsLoading] = useState(false)
     const [singleDateOpen, setSingleDateOpen] = useState(false)
     const [rangeDateOpen, setRangeDateOpen] = useState(false)
@@ -122,6 +123,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
     const router = useRouter()
 
     const form = useForm<z.infer<typeof stage1Schema>>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(stage1Schema) as any,
         defaultValues: {
             programName: program?.programName || '',
@@ -170,7 +172,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
         try {
             let result
             if (isEdit) {
-                result = await updateStage1(program.id, values)
+                result = await updateStage1(program!.id, values)
             } else {
                 result = await createProgram(values)
             }
@@ -185,8 +187,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                     router.refresh()
                 }
             }
-        } catch (error: any) {
-            const errorMsg = error?.message || error?.toString() || "Failed to save"
+        } catch (error: unknown) {
+            const errorMsg = (error as Error)?.message || String(error) || "Failed to save"
             showToast(`Error: ${errorMsg}`, "error")
             console.error("Submit error:", error)
         } finally {
@@ -210,7 +212,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                 if (!isNaN(from.getTime()) && !isNaN(to.getTime())) {
                     setDateRange({ from, to })
                 }
-            } catch (e) {
+            } catch (_e) {
                 // Ignore parsing errors
             }
         } else if (!rangeDateOpen) {

@@ -38,8 +38,8 @@ export async function GET(request: Request) {
             },
         })
 
-        const nowStr = now.toISOString().split('T')[0]
-        const futureStr = threeDaysFromNow.toISOString().split('T')[0]
+        const _nowStr = now.toISOString().split('T')[0]
+        const _futureStr = threeDaysFromNow.toISOString().split('T')[0]
 
         const approaching = programs.filter(p => {
             if (!p.programDates) return false

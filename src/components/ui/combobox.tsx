@@ -99,7 +99,7 @@ export function Combobox({
                                         onClick={handleCustomValue}
                                     >
                                         <Check className="mr-2 h-4 w-4 opacity-0" />
-                                        Use "{searchValue.trim()}"
+                                        Use &quot;{searchValue.trim()}&quot;
                                     </Button>
                                 </div>
                             ) : (

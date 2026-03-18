@@ -6,7 +6,7 @@ import {
     CartesianGrid,
     Area, AreaChart,
 } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Clock, ArrowRight, Users, Truck, DollarSign, Activity, Layers, CheckCircle, AlertTriangle, BarChart3 } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Clock, ArrowRight, Users, Truck, DollarSign, Activity, Layers, CheckCircle, BarChart3 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 const STAGE_NAMES: Record<number, string> = {
@@ -149,7 +149,7 @@ export function ReportsCharts({ stats, revenueByType, facilitators, monthlyReven
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                                     <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
                                     <YAxis tickFormatter={(v) => formatCurrency(v)} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                                    <Tooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, "Revenue"]} />
+                                    <Tooltip formatter={(v) => [`₹${Number(v ?? 0).toLocaleString()}`, "Revenue"]} />
                                     <Area type="monotone" dataKey="revenue" stroke="#4F46E5" fill="url(#revenueGrad)" strokeWidth={2} />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -192,7 +192,7 @@ export function ReportsCharts({ stats, revenueByType, facilitators, monthlyReven
                                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                                         <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
                                         <YAxis dataKey="type" type="category" width={120} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
-                                        <Tooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, "Revenue"]} />
+                                        <Tooltip formatter={(v) => [`₹${Number(v ?? 0).toLocaleString()}`, "Revenue"]} />
                                         <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
                                             {revenueByType.map((_, i) => <Cell key={i} fill={TYPE_COLORS[i % TYPE_COLORS.length]} />)}
                                         </Bar>

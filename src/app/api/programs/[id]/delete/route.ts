@@ -11,7 +11,7 @@ export async function DELETE(
     const session = await auth()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const user = session.user as any
+    const user = session.user as { role: string }
     if (user.role !== 'Admin') {
         return NextResponse.json({ error: "Only admins can delete programs" }, { status: 403 })
     }

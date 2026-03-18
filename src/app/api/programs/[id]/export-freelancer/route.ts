@@ -4,9 +4,12 @@ import { prisma } from "@/lib/prisma"
 import { jsPDF } from "jspdf"
 import path from "path"
 import fs from "fs"
+import type { ProgramCard } from "@/types"
+
+type ProgramWithSales = ProgramCard & { salesOwner?: { name: string; email: string } | null }
 
 // Helper: Parse date string safely
-function parseDateStr(program: any): string {
+function parseDateStr(program: ProgramWithSales): string {
     if (!program.programDates) return "N/A"
     try {
         const parsed = JSON.parse(program.programDates)
@@ -35,7 +38,7 @@ function getStageLabelForExport(stage: number): string {
 }
 
 // Build structured data from program (shared between all formats)
-function buildExportData(program: any) {
+function buildExportData(program: ProgramWithSales) {
     const dateStr = parseDateStr(program)
 
     const sections: { title: string; items: { label: string; value: string }[] }[] = []
@@ -88,7 +91,7 @@ function buildExportData(program: any) {
     }
 
     // Section 5: Travel Plan / Agenda
-    const travelContent = (program as any).travelPlanComments || program.travelPlanDocument
+    const travelContent = program.travelPlanComments || program.travelPlanDocument
     if (travelContent) {
         sections.push({
             title: "Travel Plan / Agenda",
@@ -125,7 +128,7 @@ function buildExportData(program: any) {
 }
 
 // Generate markdown/txt content
-function buildMarkdownContent(program: any, sections: ReturnType<typeof buildExportData>): string {
+function buildMarkdownContent(program: ProgramWithSales, sections: ReturnType<typeof buildExportData>): string {
     let md = `# Program Details: ${program.programName}\n\n`
 
     for (const section of sections) {
@@ -145,7 +148,7 @@ function buildMarkdownContent(program: any, sections: ReturnType<typeof buildExp
 }
 
 // Generate a well-structured PDF
-function buildPDF(program: any, sections: ReturnType<typeof buildExportData>): ArrayBuffer {
+function buildPDF(program: ProgramWithSales, sections: ReturnType<typeof buildExportData>): ArrayBuffer {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()

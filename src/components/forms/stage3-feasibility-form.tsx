@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
-    FormMessage,
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -21,6 +19,7 @@ import { Loader2, Save, ArrowRight, ClipboardCheck, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
 import { FileUpload } from "@/components/ui/file-upload"
+import type { ProgramCard } from "@/types"
 
 const stage3Schema = z.object({
     // Checklists
@@ -53,7 +52,7 @@ const stage3Schema = z.object({
 })
 
 interface Stage3FeasibilityFormProps {
-    program: any
+    program: ProgramCard
     isReadOnly?: boolean
     onSuccess?: () => void
     onSaveOnly?: () => void
@@ -65,13 +64,14 @@ export function Stage3FeasibilityForm({
     isReadOnly = false,
     onSuccess,
     onSaveOnly,
-    isTransitioningToThisStage = false
+    isTransitioningToThisStage: _isTransitioningToThisStage = false
 }: Stage3FeasibilityFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
     const router = useRouter()
 
     const form = useForm<z.infer<typeof stage3Schema>>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(stage3Schema) as any,
         defaultValues: {
             confirmActivityAvailability: program.confirmActivityAvailability || false,
@@ -117,8 +117,8 @@ export function Stage3FeasibilityForm({
                 if (onSaveOnly) onSaveOnly()
                 else router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed to save"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed to save"}`, "error")
         } finally {
             setIsLoading(false)
         }
@@ -141,14 +141,14 @@ export function Stage3FeasibilityForm({
                 if (onSuccess) onSuccess()
                 else router.refresh()
             }
-        } catch (error: any) {
-            showToast(`Error: ${error?.message || "Failed"}`, "error")
+        } catch (error: unknown) {
+            showToast(`Error: ${(error as Error)?.message || "Failed"}`, "error")
         } finally {
             setIsTransitioning(false)
         }
     }
 
-    const ChecklistItem = ({ name, label }: { name: any, label: string }) => (
+    const ChecklistItem = ({ name, label }: { name: keyof z.infer<typeof stage3Schema>, label: string }) => (
         <FormField
             control={form.control}
             name={name}

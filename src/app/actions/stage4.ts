@@ -5,9 +5,10 @@ import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { sendEmail } from "@/lib/email"
 import { programClosedEmail } from "@/lib/email-templates"
-import { z } from "zod"
+// z available for schema validation if needed
 
-export async function updateStage4(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateStage4(id: string, data: Record<string, any>) {
     const session = await auth()
 
     // Who can edit? Ops/Admin/Sales (Sales might enter feedback too, but let's stick to Ops for now as they are the owners until close)
@@ -32,7 +33,7 @@ export async function updateStage4(id: string, data: any) {
         })
         revalidatePath(`/dashboard/programs/${id}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Update failed" }
     }
 }
@@ -129,7 +130,7 @@ export async function moveToStage5(id: string) {
 
         revalidatePath(`/dashboard/programs/${id}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Closure failed" }
     }
 }

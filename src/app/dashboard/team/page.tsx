@@ -1,13 +1,12 @@
 import { auth } from "@/auth"
-import { redirect } from "next/navigation"
-import { getUsers, createUser } from "@/app/actions/admin"
+import { getUsers } from "@/app/actions/admin"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AddUserForm } from "./add-user-form"
 
 // Server Component for the Page
 export default async function TeamPage() {
     const session = await auth()
-    const role = (session?.user as any).role
+    const role = (session?.user as { role: string }).role
 
     if (role !== 'Admin') {
         return <div className="p-8">Unauthorized. Only Admins can view this page.</div>
@@ -33,7 +32,7 @@ export default async function TeamPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.map((u: any) => (
+                        {users.map((u: { id: string; name: string; email: string; role: string; createdAt: Date; active: boolean }) => (
                             <TableRow key={u.id}>
                                 <TableCell className="font-medium">{u.name}</TableCell>
                                 <TableCell>{u.email}</TableCell>

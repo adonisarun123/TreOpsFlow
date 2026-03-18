@@ -38,7 +38,12 @@
       "Bash(npx jest:*)",
       "Bash(node -e \":*)",
       "Bash(find /d/TreOps/TreOpsFlow -type f \\\\\\(-name *notif* -o -name *email* -o -name *cron* \\\\\\))",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(npx eslint:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(echo \"EXIT CODE: $?\")",
+      "Bash(cd /d D:TreOpsTreOpsFlow)",
+      "Bash(grep -r salesOwner src/components/ --include=*.tsx --include=*.ts)"
     ]
   }
 }

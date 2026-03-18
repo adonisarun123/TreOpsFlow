@@ -34,7 +34,7 @@ export async function createUser(data: z.infer<typeof CreateUserSchema>) {
         await prisma.user.create({ data: { name, email, password: hashedPassword, role } })
         revalidatePath('/dashboard/team')
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Failed to create user" }
     }
 }
@@ -78,10 +78,14 @@ export async function getDashboardStats() {
     ])
 
     // Build stage counts from groupBy result
-    const stageCounts = [1, 2, 3, 4, 5, 6].map(stage => ({
-        stage,
-        count: (stageDistribution.find((s: any) => s.currentStage === stage)?._count as any)?._all || 0,
-    }))
+    const stageCounts = [1, 2, 3, 4, 5, 6].map(stage => {
+        const found = stageDistribution.find((s) => s.currentStage === stage)
+        const countVal = found?._count
+        return {
+            stage,
+            count: typeof countVal === 'object' && countVal !== null ? countVal._all || 0 : 0,
+        }
+    })
 
     const thisMonthVal = thisMonthRevenue._sum.deliveryBudget || 0
     const lastMonthVal = lastMonthRevenue._sum.deliveryBudget || 0
@@ -115,12 +119,12 @@ export async function getRevenueByType() {
     })
 
     return grouped
-        .map((g: any) => ({
+        .map((g: { programType: string | null; _sum: { deliveryBudget: number | null }; _count: { _all: number } }) => ({
             type: g.programType || 'Unspecified',
             revenue: g._sum.deliveryBudget || 0,
             count: g._count?._all || 0,
         }))
-        .sort((a: any, b: any) => b.revenue - a.revenue)
+        .sort((a: { revenue: number }, b: { revenue: number }) => b.revenue - a.revenue)
 }
 
 // Facilitator workload

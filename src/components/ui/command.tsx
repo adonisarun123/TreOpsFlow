@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+// eslint-unused: import { Dialog, DialogContent } from "@/components/ui/dialog"
 
 const Command = React.forwardRef<
     HTMLDivElement,

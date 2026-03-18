@@ -8,7 +8,7 @@ const mockFindMany = jest.fn()
 jest.mock('@/lib/prisma', () => ({
     prisma: {
         programCard: {
-            findMany: (...args: any[]) => mockFindMany(...args),
+            findMany: (...args: unknown[]) => mockFindMany(...args),
             findUnique: jest.fn(),
             update: jest.fn(),
             create: jest.fn(),
@@ -71,7 +71,7 @@ describe('getPendingApprovals', () => {
         it('includes salesOwner relation', async () => {
             await getPendingApprovals('Finance')
             const query = mockFindMany.mock.calls[0][0]
-            expect(query.include).toEqual({ salesOwner: true })
+            expect(query.include).toEqual({ salesOwner: { select: { name: true } } })
         })
 
         it('returns programs in Stage 3 with finance not approved', async () => {

@@ -13,15 +13,15 @@ const mockFindMany = jest.fn()
 jest.mock('@/lib/prisma', () => ({
     prisma: {
         programCard: {
-            count: (...args: any[]) => mockCount(...args),
-            aggregate: (...args: any[]) => mockAggregate(...args),
-            groupBy: (...args: any[]) => mockGroupBy(...args),
-            findMany: (...args: any[]) => mockFindMany(...args),
+            count: (...args: unknown[]) => mockCount(...args),
+            aggregate: (...args: unknown[]) => mockAggregate(...args),
+            groupBy: (...args: unknown[]) => mockGroupBy(...args),
+            findMany: (...args: unknown[]) => mockFindMany(...args),
         },
         stageTransition: {
             findMany: jest.fn().mockResolvedValue([]),
         },
-        $transaction: (...args: any[]) => mockTransaction(...args),
+        $transaction: (...args: unknown[]) => mockTransaction(...args),
     },
 }))
 
@@ -286,7 +286,7 @@ describe('getFacilitatorWorkload', () => {
 
         expect(result).toHaveLength(2)
 
-        const sharath = result.find((f: any) => f.name === 'Sharath')
+        const sharath = result.find((f: { name: string; active: number; completed: number; total: number; revenue: number }) => f.name === 'Sharath')
         expect(sharath).toBeDefined()
         expect(sharath!.total).toBe(2)
         expect(sharath!.active).toBe(1)

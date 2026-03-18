@@ -13,9 +13,10 @@ import {
     Check, X, Loader2,
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface PendingApprovalCardProps {
-    program: any
+    program: ProgramWithSalesOwner
     userRole: string
 }
 

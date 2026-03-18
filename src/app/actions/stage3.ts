@@ -7,7 +7,7 @@ import { sendEmail } from "@/lib/email"
 import { stageCompletedEmail } from "@/lib/email-templates"
 import { z } from "zod"
 
-const Stage3Schema = z.object({
+const _Stage3Schema = z.object({
     venueReached: z.boolean().optional(),
     facilitatorsReached: z.boolean().optional(),
     programCompleted: z.boolean().optional(),
@@ -18,7 +18,8 @@ const Stage3Schema = z.object({
     initialExpenseSheet: z.string().optional(),
 })
 
-export async function updateStage3(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateStage3(id: string, data: Record<string, any>) {
     const session = await auth()
 
     // Who can edit? Ops/Admin
@@ -45,7 +46,7 @@ export async function updateStage3(id: string, data: any) {
         })
         revalidatePath(`/dashboard/programs/${id}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Update failed" }
     }
 }
@@ -120,7 +121,7 @@ export async function moveToStage4(id: string) {
 
         revalidatePath(`/dashboard/programs/${id}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Transition failed" }
     }
 }

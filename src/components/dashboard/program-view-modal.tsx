@@ -14,9 +14,10 @@ import Link from "next/link"
 import { FreelancerExportButton } from "@/components/freelancer-export-button"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface ProgramViewModalProps {
-    program: any
+    program: ProgramWithSalesOwner | null
     isOpen: boolean
     onClose: () => void
 }

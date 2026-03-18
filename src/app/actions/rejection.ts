@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
+import type { ProgramWithSalesOwner } from "@/types"
 import { sendEmail } from "@/lib/email"
 import { financeRejectedEmail, opsRejectedEmail, programResubmittedEmail } from "@/lib/email-templates"
 
@@ -223,7 +224,7 @@ export async function resubmitProgram(programId: string) {
  */
 export async function getPendingApprovals(userRole: string) {
     try {
-        let programs: any[] = []
+        let programs: ProgramWithSalesOwner[] = []
 
         if (userRole === 'Admin') {
             // Admin sees both Finance-pending and Ops-pending programs
@@ -244,7 +245,7 @@ export async function getPendingApprovals(userRole: string) {
                         },
                     ],
                 },
-                include: { salesOwner: true },
+                include: { salesOwner: { select: { name: true } } },
                 orderBy: { createdAt: 'desc' },
             })
         } else if (userRole === 'Finance') {
@@ -258,7 +259,7 @@ export async function getPendingApprovals(userRole: string) {
                         { rejectionStatus: { not: 'rejected_finance' } }
                     ]
                 },
-                include: { salesOwner: true },
+                include: { salesOwner: { select: { name: true } } },
                 orderBy: { createdAt: 'desc' },
             })
         } else if (userRole === 'Ops') {
@@ -272,7 +273,7 @@ export async function getPendingApprovals(userRole: string) {
                         { rejectionStatus: { not: 'rejected_ops' } }
                     ]
                 },
-                include: { salesOwner: true },
+                include: { salesOwner: { select: { name: true } } },
                 orderBy: { createdAt: 'desc' },
             })
         }

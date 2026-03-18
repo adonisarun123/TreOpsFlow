@@ -2,14 +2,16 @@
 
 import { useState } from "react"
 import { Button } from "./ui/button"
-import { approveFinance, acceptHandover } from "@/app/actions/approval"
+import { approveFinance } from "@/app/actions/approval"
 import { rejectFinance, rejectOpsHandover } from "@/app/actions/rejection"
 import { useRouter } from "next/navigation"
 import { Loader2, Check, X } from "lucide-react"
 import { showToast } from "./ui/toaster"
 import { RejectionModal } from "./ui/rejection-modal"
+import type { ProgramCard } from "@/types"
 
-export function HandoverActions({ program, session }: { program: any; session: any }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function HandoverActions({ program, session }: { program: ProgramCard; session: { user?: Record<string, any> } | null }) {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [showFinanceRejectModal, setShowFinanceRejectModal] = useState(false)

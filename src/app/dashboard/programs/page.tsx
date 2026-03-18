@@ -19,7 +19,7 @@ export default async function AllProgramsPage({ searchParams }: PageProps) {
     }
 
     const params = await searchParams
-    const user = session?.user as any
+    const user = session?.user as { role?: string } | undefined
     const role = user?.role || 'Sales'
 
     const page = parseInt(params.page || '1', 10)

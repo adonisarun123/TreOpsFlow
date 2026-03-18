@@ -8,7 +8,7 @@ import { stageCompletedEmail } from "@/lib/email-templates"
 import { canProgressFromStage2 } from "@/lib/validations"
 import { z } from "zod"
 
-const Stage2Schema = z.object({
+const _Stage2Schema = z.object({
     facilitatorsBlocked: z.string().optional(),
     helperStaffBlocked: z.string().optional(),
     transportBlocked: z.string().optional(),
@@ -22,10 +22,11 @@ const Stage2Schema = z.object({
     prepComplete: z.boolean().optional(),
 })
 
-export async function updateProgram(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateProgram(id: string, data: Record<string, any>) {
     const session = await auth()
     if (!session) return { error: "Unauthorized" }
-    const userRole = session.user?.role
+    const _userRole = session.user?.role
 
     // Who can edit? Ops/Admin for Stage 2, Sales/Admin for Stage 1 details
     // For now simple check
@@ -49,7 +50,7 @@ export async function updateProgram(id: string, data: any) {
         })
         revalidatePath(`/dashboard/programs/${id}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Update failed" }
     }
 }
@@ -116,7 +117,7 @@ export async function moveToStage3(programId: string) {
 
         revalidatePath(`/dashboard/programs/${programId}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Transition failed" }
     }
 }

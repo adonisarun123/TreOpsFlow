@@ -18,7 +18,7 @@ export async function getAppSetting(key: string) {
 
 export async function updateAppSetting(key: string, value: string) {
     const session = await auth()
-    if ((session?.user as any)?.role !== 'Admin') {
+    if ((session?.user as { role?: string })?.role !== 'Admin') {
         return { error: "Unauthorized — only Admins can update settings" }
     }
 
@@ -34,7 +34,7 @@ export async function updateAppSetting(key: string, value: string) {
         })
         revalidatePath('/dashboard/settings')
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Failed to update setting" }
     }
 }

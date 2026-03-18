@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Download, FileText, Loader2, ChevronDown, FileDown } from "lucide-react"
+import { FileText, Loader2, ChevronDown, FileDown } from "lucide-react"
 import { useState } from "react"
 import { showToast } from "@/components/ui/toaster"
 import {
@@ -57,9 +57,9 @@ export function FreelancerExportButton({ programId, variant = "outline", size = 
             a.remove()
 
             showToast("Freelancer details exported successfully", "success")
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Export error:", error)
-            showToast(`Error: ${error?.message || "Failed to export details"}`, "error")
+            showToast(`Error: ${(error as Error)?.message || "Failed to export details"}`, "error")
         } finally {
             setIsExporting(false)
         }

@@ -9,12 +9,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getStageName } from "@/lib/validations"
 import { AlertTriangle, ArrowLeft } from "lucide-react"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface StageReturnModalProps {
     isOpen: boolean
     onClose: () => void
     onConfirm: () => void
-    program: any
+    program: ProgramWithSalesOwner | null
     targetStage: number
 }
 
@@ -26,6 +27,7 @@ export function StageReturnModal({ isOpen, onClose, onConfirm, program, targetSt
     if (!program) return null
 
     async function handleReturn() {
+        if (!program) return
         if (!reason.trim()) {
             showToast("Please provide a reason for returning this program.", "error")
             return
@@ -47,7 +49,7 @@ export function StageReturnModal({ isOpen, onClose, onConfirm, program, targetSt
                 onConfirm()
                 router.refresh()
             }
-        } catch (err) {
+        } catch (_err) {
             showToast("Failed to return program", "error")
         } finally {
             setIsSubmitting(false)

@@ -6,7 +6,7 @@ export const revalidate = 30
 
 export default async function DashboardPage() {
     const session = await auth()
-    const user = session?.user as any
+    const user = session?.user as { role?: string } | undefined
     const programs = await getPrograms()
     const role = user?.role || 'Sales' // Default to Sales if role is missing
 

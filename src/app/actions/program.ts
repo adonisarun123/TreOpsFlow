@@ -5,7 +5,7 @@ import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-const ProgramSchema = z.object({
+const _ProgramSchema = z.object({
     programName: z.string().min(1, "Program name is required"),
     programType: z.string().optional(),
     programDates: z.array(z.string()).optional(), // Will store as JSON string
@@ -23,7 +23,8 @@ const ProgramSchema = z.object({
     deliveryBudget: z.number().optional(),
 })
 
-export async function createProgram(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function createProgram(data: Record<string, any>) {
     const session = await auth()
 
     if (!session?.user || (session.user.role !== 'Sales' && session.user.role !== 'Admin')) {

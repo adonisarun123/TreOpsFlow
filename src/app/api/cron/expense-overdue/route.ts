@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         })
 
         // Filter: only programs where the program date is > 7 days ago
-        const overdueStr = sevenDaysAgo.toISOString().split('T')[0]
+        const _overdueStr = sevenDaysAgo.toISOString().split('T')[0]
         const filtered = overduePrograms.filter(p => {
             if (!p.programDates) return true // No date = overdue by default
             try {

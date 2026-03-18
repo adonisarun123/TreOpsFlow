@@ -4,7 +4,8 @@ import { useState } from "react"
 import { CheckCircle2, Circle, MapPin, Clock, Users, Phone, ChevronDown, ChevronUp, Truck, Package, FileText, AlertTriangle } from "lucide-react"
 
 interface MobileChecklistProps {
-    program: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    program: Record<string, any>
 }
 
 function CheckItem({ label, checked, highlight }: { label: string; checked: boolean; highlight?: boolean }) {
@@ -26,7 +27,7 @@ function CheckItem({ label, checked, highlight }: { label: string; checked: bool
 }
 
 function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false }: {
-    title: string; icon: any; children: React.ReactNode; defaultOpen?: boolean
+    title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean
 }) {
     const [open, setOpen] = useState(defaultOpen)
     return (

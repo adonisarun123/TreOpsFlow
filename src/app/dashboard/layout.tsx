@@ -14,7 +14,7 @@ export default async function DashboardLayout({
         redirect('/login')
     }
 
-    const user = session.user as any
+    const user = session.user as { role?: string; name?: string }
     const userRole = user?.role || 'Sales'
     const userName = user?.name || 'User'
     const pendingApprovals = await getPendingApprovals(userRole)

@@ -4,13 +4,15 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, RotateCcw, Archive, CheckCircle, Calendar, MapPin, Users, DollarSign } from "lucide-react"
+import { Loader2, RotateCcw, Archive, CheckCircle, MapPin, Users, DollarSign } from "lucide-react"
 import { showToast } from "@/components/ui/toaster"
 import { format } from "date-fns"
+import type { ProgramCard } from "@/types"
 
 interface Stage6DoneViewProps {
-    program: any
-    currentUser: any
+    program: ProgramCard
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    currentUser: Record<string, any> | null | undefined
 }
 
 export function Stage6DoneView({ program, currentUser }: Stage6DoneViewProps) {
@@ -30,7 +32,7 @@ export function Stage6DoneView({ program, currentUser }: Stage6DoneViewProps) {
                 showToast("Program reopened and returned to Post Trip Closure", "success")
                 router.refresh()
             }
-        } catch (error) {
+        } catch (_error) {
             showToast("Failed to reopen program", "error")
         } finally {
             setIsReopening(false)

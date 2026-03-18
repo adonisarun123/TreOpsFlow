@@ -10,9 +10,10 @@ import { getStageName } from "@/lib/validations"
 import { StageStepper } from "./stage-stepper"
 import { ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface StageTransitionModalProps {
-    program: any
+    program: ProgramWithSalesOwner | null
     targetStage: number
     isOpen: boolean
     onClose: () => void
@@ -21,7 +22,7 @@ interface StageTransitionModalProps {
 
 export function StageTransitionModal({
     program,
-    targetStage,
+    targetStage: _targetStage,
     isOpen,
     onClose,
     onConfirm

@@ -194,7 +194,7 @@ export async function moveToStage2(programId: string, transitionedByUserId: stri
 
         revalidatePath(`/dashboard/programs/${programId}`)
         return { success: true }
-    } catch (e) {
+    } catch (_e) {
         return { error: "Failed to move to Accepted Handover." }
     }
 }

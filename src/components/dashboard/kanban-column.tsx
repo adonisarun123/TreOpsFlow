@@ -4,12 +4,13 @@ import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { KanbanCard } from "./kanban-card"
 import { FolderOpen } from "lucide-react"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface KanbanColumnProps {
     id: string
     title: string
-    programs: any[]
-    onCardClick?: (program: any) => void
+    programs: ProgramWithSalesOwner[]
+    onCardClick?: (program: ProgramWithSalesOwner) => void
 }
 
 const COLUMN_COLORS: Record<string, { border: string; header: string; dot: string }> = {

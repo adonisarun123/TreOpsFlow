@@ -21,9 +21,10 @@ import { StageReturnModal } from "./stage-return-modal"
 import { ProgramViewModal } from "./program-view-modal"
 import { showToast } from "@/components/ui/toaster"
 import { useRouter } from "next/navigation"
+import type { ProgramWithSalesOwner } from "@/types"
 
 interface KanbanBoardProps {
-    initialPrograms: any[]
+    initialPrograms: ProgramWithSalesOwner[]
 }
 
 const STAGES = [
@@ -36,9 +37,9 @@ const STAGES = [
 ]
 
 export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
-    const [programs, setPrograms] = useState<any[]>(initialPrograms)
+    const [programs, setPrograms] = useState<ProgramWithSalesOwner[]>(initialPrograms)
     const [activeId, setActiveId] = useState<string | null>(null)
-    const [draggingProgram, setDraggingProgram] = useState<any | null>(null)
+    const [draggingProgram, setDraggingProgram] = useState<ProgramWithSalesOwner | null>(null)
 
     // Forward transition modal state
     const [isForwardModalOpen, setIsForwardModalOpen] = useState(false)
@@ -46,10 +47,10 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false)
     // View modal state
     const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-    const [viewProgram, setViewProgram] = useState<any | null>(null)
+    const [viewProgram, setViewProgram] = useState<ProgramWithSalesOwner | null>(null)
 
     const [pendingTransition, setPendingTransition] = useState<{ programId: string, targetStage: number } | null>(null)
-    const [transitionProgram, setTransitionProgram] = useState<any | null>(null)
+    const [transitionProgram, setTransitionProgram] = useState<ProgramWithSalesOwner | null>(null)
 
     const router = useRouter()
 
@@ -72,10 +73,10 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
         const { active } = event
         setActiveId(active.id as string)
         const program = programs.find((p) => p.id === active.id)
-        setDraggingProgram(program)
+        setDraggingProgram(program ?? null)
     }
 
-    function handleDragOver(event: DragOverEvent) {
+    function handleDragOver(_event: DragOverEvent) {
         // Optimistic sorting could be added here
     }
 
@@ -122,7 +123,7 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
         }
     }
 
-    function handleCardClick(program: any) {
+    function handleCardClick(program: ProgramWithSalesOwner) {
         setViewProgram(program)
         setIsViewModalOpen(true)
     }

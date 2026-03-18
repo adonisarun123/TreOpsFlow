@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+// eslint-unused: import { Separator } from "@/components/ui/separator"
 import { CalendarIcon, MapPin, Users, Building2, Phone, Mail, Clock, DollarSign, FileText, Activity, ExternalLink, CircleCheck } from "lucide-react"
 import { formatProgramDate } from "@/lib/date-utils"
+import type { ProgramWithSalesOwner } from "@/types"
 
-function DetailRow({ label, value, icon }: { label: string, value: any, icon?: React.ReactNode }) {
+function DetailRow({ label, value, icon }: { label: string, value: React.ReactNode, icon?: React.ReactNode }) {
     if (!value && value !== 0) return null
     return (
         <div className="flex items-start gap-2 text-sm py-1.5 group">
@@ -16,7 +17,7 @@ function DetailRow({ label, value, icon }: { label: string, value: any, icon?: R
     )
 }
 
-export function Stage1Summary({ program }: { program: any }) {
+export function Stage1Summary({ program }: { program: ProgramWithSalesOwner }) {
     if (!program) return <div>No program data available</div>
 
     return (
@@ -101,11 +102,11 @@ export function Stage1Summary({ program }: { program: any }) {
                         <div className="mt-2 pt-2 border-t border-dashed border-border/50 text-sm">
                             <span className="text-muted-foreground text-[11px] uppercase tracking-wider block mb-1">Budget Breakdown</span>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
-                                {program.budgetVenue > 0 && <div>Venue: <span className="text-foreground">₹{Number(program.budgetVenue).toLocaleString()}</span></div>}
-                                {program.budgetTransport > 0 && <div>Transport: <span className="text-foreground">₹{Number(program.budgetTransport).toLocaleString()}</span></div>}
-                                {program.budgetActivities > 0 && <div>Activities: <span className="text-foreground">₹{Number(program.budgetActivities).toLocaleString()}</span></div>}
-                                {program.budgetFood > 0 && <div>Food: <span className="text-foreground">₹{Number(program.budgetFood).toLocaleString()}</span></div>}
-                                {program.budgetMiscellaneous > 0 && <div>Misc: <span className="text-foreground">₹{Number(program.budgetMiscellaneous).toLocaleString()}</span></div>}
+                                {(program.budgetVenue ?? 0) > 0 && <div>Venue: <span className="text-foreground">₹{Number(program.budgetVenue).toLocaleString()}</span></div>}
+                                {(program.budgetTransport ?? 0) > 0 && <div>Transport: <span className="text-foreground">₹{Number(program.budgetTransport).toLocaleString()}</span></div>}
+                                {(program.budgetActivities ?? 0) > 0 && <div>Activities: <span className="text-foreground">₹{Number(program.budgetActivities).toLocaleString()}</span></div>}
+                                {(program.budgetFood ?? 0) > 0 && <div>Food: <span className="text-foreground">₹{Number(program.budgetFood).toLocaleString()}</span></div>}
+                                {(program.budgetMiscellaneous ?? 0) > 0 && <div>Misc: <span className="text-foreground">₹{Number(program.budgetMiscellaneous).toLocaleString()}</span></div>}
                             </div>
                         </div>
                     )}

@@ -8,7 +8,7 @@ import { PendingApprovalCard } from "@/components/dashboard/pending-approval-car
 
 export default async function PendingApprovalsPage() {
     const session = await auth()
-    const userRole = (session?.user as any)?.role
+    const userRole = (session?.user as { role?: string })?.role
 
     if (!session) {
         redirect("/login")
@@ -51,7 +51,7 @@ export default async function PendingApprovalsPage() {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {programs.map((program: any) => (
+                    {programs.map((program) => (
                         <PendingApprovalCard
                             key={program.id}
                             program={program}
