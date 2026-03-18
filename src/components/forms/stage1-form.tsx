@@ -130,8 +130,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
             programDates: program?.programDates || '',
             programTimings: program?.programTimings || '',
             location: program?.location || '',
-            minPax: program?.minPax ?? 1,
-            maxPax: program?.maxPax ?? 50,
+            minPax: program?.minPax ?? '',
+            maxPax: program?.maxPax ?? '',
             trainingDays: program?.trainingDays ?? '',
 
             companyName: program?.companyName || '',

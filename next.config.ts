@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  images: {
+    localPatterns: [
+      { pathname: '/**' },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '20mb', // Supports file uploads (10MB validation limit + overhead)
