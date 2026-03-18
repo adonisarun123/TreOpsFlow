@@ -13,6 +13,12 @@ export async function GET(request: Request) {
     if (authError) return authError
 
     try {
+        // Check if notification is enabled
+        const setting = await prisma.appSetting.findUnique({ where: { key: "notification_delivery_reminder" } })
+        if (setting?.value === "false") {
+            return NextResponse.json({ skipped: true, reason: "Notification disabled by admin" })
+        }
+
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1)
         tomorrow.setHours(0, 0, 0, 0)

@@ -22,7 +22,7 @@ export default async function TeamPage() {
                 <AddUserForm />
             </div>
 
-            <div className="bg-white rounded-md border">
+            <div className="bg-card rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -39,10 +39,10 @@ export default async function TeamPage() {
                                 <TableCell>{u.email}</TableCell>
                                 <TableCell>
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                                        ${u.role === 'Admin' ? 'bg-red-100 text-red-800' : ''}
-                                        ${u.role === 'Sales' ? 'bg-blue-100 text-blue-800' : ''}
-                                        ${u.role === 'Ops' ? 'bg-green-100 text-green-800' : ''}
-                                        ${u.role === 'Finance' ? 'bg-yellow-100 text-yellow-800' : ''}
+                                        ${u.role === 'Admin' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200' : ''}
+                                        ${u.role === 'Sales' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200' : ''}
+                                        ${u.role === 'Ops' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200' : ''}
+                                        ${u.role === 'Finance' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200' : ''}
                                     `}>
                                         {u.role}
                                     </span>

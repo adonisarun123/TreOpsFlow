@@ -12,6 +12,12 @@ export async function GET(request: Request) {
     if (authError) return authError
 
     try {
+        // Check if notification is enabled
+        const setting = await prisma.appSetting.findUnique({ where: { key: "notification_timeline_approaching" } })
+        if (setting?.value === "false") {
+            return NextResponse.json({ skipped: true, reason: "Notification disabled by admin" })
+        }
+
         const now = new Date()
         const threeDaysFromNow = new Date()
         threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)

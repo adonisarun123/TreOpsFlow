@@ -13,6 +13,12 @@ export async function GET(request: Request) {
     if (authError) return authError
 
     try {
+        // Check if notification is enabled
+        const setting = await prisma.appSetting.findUnique({ where: { key: "notification_low_zfd_alert" } })
+        if (setting?.value === "false") {
+            return NextResponse.json({ skipped: true, reason: "Notification disabled by admin" })
+        }
+
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 

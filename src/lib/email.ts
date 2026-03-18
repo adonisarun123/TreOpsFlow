@@ -14,15 +14,19 @@ interface EmailPayload {
     text?: string
 }
 
-export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; stub?: boolean }> {
     const { to, subject, html, text } = payload
     const recipients = Array.isArray(to) ? to : [to]
 
-    // Skip sending if SMTP is not configured — log to console instead
+    // Skip sending if SMTP is not configured — warn in console
     if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER) {
-        console.log(`[EMAIL STUB] To: ${recipients.join(', ')} | Subject: ${subject}`)
-        console.log(`[EMAIL STUB] Set EMAIL_HOST and EMAIL_USER env vars to enable real email sending`)
-        return { success: true }
+        if (process.env.NODE_ENV === 'production') {
+            console.error(`[EMAIL] SMTP not configured in production! Email NOT sent to: ${recipients.join(', ')} | Subject: ${subject}`)
+        } else {
+            console.warn(`[EMAIL STUB] To: ${recipients.join(', ')} | Subject: ${subject}`)
+            console.warn(`[EMAIL STUB] Set EMAIL_HOST and EMAIL_USER env vars to enable real email sending`)
+        }
+        return { success: true, stub: true }
     }
 
     // Production: use nodemailer

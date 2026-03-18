@@ -7,13 +7,14 @@ import { Separator } from "@/components/ui/separator"
 import { Settings, User, Bell, Shield, Info, Database, ExternalLink, FileSpreadsheet } from "lucide-react"
 import { getAppSettings } from "@/app/actions/settings"
 import { SheetUrlForm } from "@/components/settings/sheet-url-form"
+import { NotificationToggles } from "@/components/settings/notification-toggle"
 
 export default async function SettingsPage() {
     const session = await auth()
     const user = session?.user as any
     const isAdmin = user?.role === 'Admin'
 
-    const settings = isAdmin ? await getAppSettings() : []
+    const settings = await getAppSettings()
     const settingsMap = Object.fromEntries((settings as any[]).map((s: any) => [s.key, s.value]))
 
     return (
@@ -55,37 +56,12 @@ export default async function SettingsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base flex items-center gap-2"><Bell className="h-4 w-4" /> Notifications</CardTitle>
-                        <CardDescription>Automatic alert configuration</CardDescription>
+                        <CardDescription>
+                            {isAdmin ? "Toggle automated notifications on or off" : "Automatic alert configuration"}
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
-                            <div>
-                                <p className="text-sm font-medium">Delivery Day Reminder</p>
-                                <p className="text-xs text-muted-foreground">1 day before program date</p>
-                            </div>
-                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Active</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
-                            <div>
-                                <p className="text-sm font-medium">Expense Overdue Alert</p>
-                                <p className="text-xs text-muted-foreground">7 days after delivery, expense not submitted</p>
-                            </div>
-                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Active</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
-                            <div>
-                                <p className="text-sm font-medium">Timeline Approaching</p>
-                                <p className="text-xs text-muted-foreground">3 days before program date</p>
-                            </div>
-                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Active</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
-                            <div>
-                                <p className="text-sm font-medium">Low ZFD Alert</p>
-                                <p className="text-xs text-muted-foreground">Alert when ZFD rating ≤ 3</p>
-                            </div>
-                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Active</Badge>
-                        </div>
+                    <CardContent>
+                        <NotificationToggles settings={settingsMap} isAdmin={isAdmin} />
                     </CardContent>
                 </Card>
 

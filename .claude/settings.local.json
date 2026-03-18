@@ -36,7 +36,9 @@
       "Bash(xargs cat:*)",
       "Bash(head -60 /d/TreOps/TreOpsFlow/src/app/api/programs/[id]/stage2/route.ts)",
       "Bash(npx jest:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(find /d/TreOps/TreOpsFlow -type f \\\\\\(-name *notif* -o -name *email* -o -name *cron* \\\\\\))",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ]
   }
 }

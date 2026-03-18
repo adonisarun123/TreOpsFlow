@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 /**
  * Verifies that a cron request includes a valid CRON_SECRET.
- * Checks the Authorization header (Bearer token) or `secret` query parameter.
+ * Only accepts the Authorization: Bearer <token> header.
  *
  * Usage:
  *   const authError = verifyCronSecret(request)
@@ -26,13 +26,6 @@ export function verifyCronSecret(request: Request): NextResponse | null {
         if (token === cronSecret) {
             return null // Authorized
         }
-    }
-
-    // Check ?secret=<token> query parameter (for simple cron services)
-    const url = new URL(request.url)
-    const querySecret = url.searchParams.get("secret")
-    if (querySecret === cronSecret) {
-        return null // Authorized
     }
 
     return NextResponse.json(

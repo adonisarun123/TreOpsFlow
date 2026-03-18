@@ -256,6 +256,8 @@ model ProgramCard {
   @@index([currentStage, financeApprovalReceived])
   @@index([currentStage, handoverAcceptedByOps])
   @@index([financeApprovalReceived])
+  @@index([zfdRating])
+  @@index([updatedAt])
 }
 
 model AppSetting {
