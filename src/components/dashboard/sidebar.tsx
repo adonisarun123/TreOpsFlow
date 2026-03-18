@@ -63,7 +63,7 @@ export function Sidebar({ userRole, userName, pendingCount, onSignOut }: Sidebar
         <div className="flex flex-col h-full">
             {/* Brand */}
             <div className="px-4 py-4 border-b border-sidebar-border flex flex-col items-center gap-2">
-                <Image src="/logo.png" alt="Knot by Trebound" width={200} height={200} className="rounded-2xl w-[140px] md:w-[180px]" />
+                <Image src="/logo.png?v=2" alt="Knot by Trebound" width={200} height={200} className="rounded-2xl w-[140px] md:w-[180px]" />
             </div>
 
             {/* Navigation */}
