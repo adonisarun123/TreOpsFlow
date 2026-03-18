@@ -1,6 +1,8 @@
 import { auth } from "@/auth"
 import { getPendingApprovals } from "@/app/actions/rejection"
 import { redirect } from "next/navigation"
+
+export const revalidate = 15
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Clock, ArrowRight, Building2, MapPin, IndianRupee, User, Inbox } from "lucide-react"
@@ -110,12 +112,16 @@ export default async function PendingApprovalsPage() {
                                                 </div>
 
                                                 <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                                                    {/* Stage badge */}
+                                                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium bg-muted text-muted-foreground`}>
+                                                        Stage {program.currentStage}
+                                                    </span>
                                                     {!program.financeApprovalReceived && (
                                                         <span className="stage-badge-1 px-2 py-0.5 rounded text-[11px] font-medium">
                                                             Awaiting Finance
                                                         </span>
                                                     )}
-                                                    {program.financeApprovalReceived && !program.handoverAcceptedByOps && (
+                                                    {!program.handoverAcceptedByOps && program.currentStage <= 2 && (
                                                         <span className="stage-badge-5 px-2 py-0.5 rounded text-[11px] font-medium">
                                                             Awaiting Ops
                                                         </span>

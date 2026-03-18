@@ -358,7 +358,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                                             )}
                                                         >
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {field.value ? field.value : "Select date"}
+                                                            {field.value ? (() => { try { return format(new Date(field.value), "PP") } catch { return field.value } })() : "Select date"}
                                                         </Button>
                                                     </PopoverTrigger>
                                                     <PopoverContent className="w-auto p-0">
@@ -366,7 +366,7 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                                             mode="single"
                                                             selected={field.value ? new Date(field.value) : undefined}
                                                             onSelect={(date) => {
-                                                                field.onChange(date ? format(date, "PP") : "")
+                                                                field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                                                                 setSingleDateOpen(false)
                                                             }}
                                                             initialFocus
@@ -388,7 +388,15 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                                             )}
                                                         >
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {field.value ? field.value : "Select date range"}
+                                                            {field.value ? (() => {
+                                                                try {
+                                                                    if (field.value.includes(' - ')) {
+                                                                        const [s, e] = field.value.split(' - ')
+                                                                        return `${format(new Date(s), "PP")} - ${format(new Date(e), "PP")}`
+                                                                    }
+                                                                    return format(new Date(field.value), "PP")
+                                                                } catch { return field.value }
+                                                            })() : "Select date range"}
                                                         </Button>
                                                     </PopoverTrigger>
                                                     <PopoverContent className="w-auto p-0">
@@ -399,8 +407,8 @@ export function Stage1Form({ program, isEdit = false }: { program?: any, isEdit?
                                                                 setDateRange(range)
                                                                 // Check if we have a complete, valid date range
                                                                 if (range?.from && range?.to && range.from.getTime() !== range.to.getTime()) {
-                                                                    // Save the range and close
-                                                                    const formatted = `${format(range.from, "PP")} - ${format(range.to, "PP")}`
+                                                                    // Save the range in ISO format and close
+                                                                    const formatted = `${format(range.from, "yyyy-MM-dd")} - ${format(range.to, "yyyy-MM-dd")}`
                                                                     field.onChange(formatted)
                                                                     setRangeDateOpen(false)
                                                                     setDateRange(undefined)

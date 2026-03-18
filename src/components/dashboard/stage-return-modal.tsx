@@ -56,7 +56,7 @@ export function StageReturnModal({ isOpen, onClose, onConfirm, program, targetSt
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-md bg-card border-border">
+            <DialogContent className="max-w-[95vw] sm:max-w-md bg-card border-border">
                 {/* Warning header */}
                 <div className="bg-orange-50 dark:bg-orange-950/30 -mx-6 -mt-6 px-6 pt-5 pb-4 border-b border-orange-200 dark:border-orange-800 rounded-t-lg">
                     <div className="flex items-center gap-3">

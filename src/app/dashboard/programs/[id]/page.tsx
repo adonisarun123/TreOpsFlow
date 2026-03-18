@@ -15,12 +15,22 @@ import { StageStepper } from "@/components/dashboard/stage-stepper"
 import { ArrowLeft, Building2, MapPin, CalendarIcon, User } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
+import { formatProgramDate } from "@/lib/date-utils"
 import { FreelancerExportButton } from "@/components/freelancer-export-button"
+import { getAppSettings } from "@/app/actions/settings"
 
 export default async function ProgramPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
     const program = await getProgramById(id)
     const session = await auth()
+
+    // Fetch sheet URLs for Stage 5 form
+    const settings = await getAppSettings()
+    const settingsMap = Object.fromEntries((settings as any[]).map((s: any) => [s.key, s.value]))
+    const sheetUrls = {
+        opsDataEntrySheetUrl: settingsMap['opsDataEntrySheetUrl'] || '',
+        tripExpenseSheetUrl: settingsMap['tripExpenseSheetUrl'] || '',
+    }
 
     if (!program) {
         notFound()
@@ -31,18 +41,8 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
     const isOwner = program.salesPOCId === userId
     const isOpsOrAdmin = userRole === 'Ops' || userRole === 'Admin'
 
-    // Parse date for display
-    let displayDate = "N/A"
-    if (program.programDates) {
-        try {
-            const parsed = JSON.parse(program.programDates)
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                displayDate = format(new Date(parsed[0]), "dd MMM yyyy")
-            }
-        } catch {
-            try { displayDate = format(new Date(program.programDates), "dd MMM yyyy") } catch { displayDate = program.programDates }
-        }
-    }
+    // Parse date for display (handles single dates, ranges, and legacy formats)
+    const displayDate = formatProgramDate(program.programDates)
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
@@ -85,11 +85,11 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
                                 )}
                             </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 shrink-0">
-                            <FreelancerExportButton programId={program.id} />
-                            <span className={`stage-badge-${program.currentStage} px-3 py-1 rounded-lg text-sm font-semibold`}>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+                            <span className={`stage-badge-${program.currentStage} px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold`}>
                                 {getStageName(program.currentStage)}
                             </span>
+                            <FreelancerExportButton programId={program.id} />
                         </div>
                     </div>
                 </div>
@@ -174,14 +174,14 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
             {program.currentStage === 5 && isOpsOrAdmin && (
                 <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-5">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Post Trip Closure</h3>
-                    <Stage5PostTripForm program={program} />
+                    <Stage5PostTripForm program={program} sheetUrls={sheetUrls} />
                 </div>
             )}
 
             {program.currentStage > 5 && (
                 <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-5 opacity-80">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Post Trip Closure <span className="text-xs normal-case font-normal">(completed)</span></h3>
-                    <Stage5PostTripForm program={program} isReadOnly={true} />
+                    <Stage5PostTripForm program={program} isReadOnly={true} sheetUrls={sheetUrls} />
                 </div>
             )}
 

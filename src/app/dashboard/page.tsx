@@ -2,6 +2,8 @@ import { auth } from "@/auth"
 import { getPrograms } from "@/app/actions/program"
 import { DashboardView } from "@/components/dashboard/dashboard-view"
 
+export const revalidate = 30
+
 export default async function DashboardPage() {
     const session = await auth()
     const user = session?.user as any

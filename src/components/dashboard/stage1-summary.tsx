@@ -1,19 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { CalendarIcon, MapPin, Users, Building2, Phone, Mail, Clock, DollarSign, FileText, Activity, ExternalLink } from "lucide-react"
-
-function parseProgramDates(rawDates: string | null | undefined): string {
-    if (!rawDates) return 'N/A'
-    try {
-        const parsed = JSON.parse(rawDates)
-        if (Array.isArray(parsed)) {
-            return parsed.join(' - ')
-        }
-        return String(parsed)
-    } catch {
-        return rawDates
-    }
-}
+import { CalendarIcon, MapPin, Users, Building2, Phone, Mail, Clock, DollarSign, FileText, Activity, ExternalLink, CircleCheck } from "lucide-react"
+import { formatProgramDate } from "@/lib/date-utils"
 
 function DetailRow({ label, value, icon }: { label: string, value: any, icon?: React.ReactNode }) {
     if (!value && value !== 0) return null
@@ -49,7 +37,7 @@ export function Stage1Summary({ program }: { program: any }) {
                 </h4>
                 <div className="pl-4 border-l-2 border-muted">
                     <DetailRow label="Location" value={program.location} />
-                    <DetailRow label="Dates" value={parseProgramDates(program.programDates)} icon={<CalendarIcon className="h-3.5 w-3.5" />} />
+                    <DetailRow label="Dates" value={formatProgramDate(program.programDates)} icon={<CalendarIcon className="h-3.5 w-3.5" />} />
                     <DetailRow label="Timings" value={program.programTimings} icon={<Clock className="h-3.5 w-3.5" />} />
                     <DetailRow label="Pax Range" value={`${program.minPax || 'N/A'} – ${program.maxPax || 'N/A'}`} icon={<Users className="h-3.5 w-3.5" />} />
                     <DetailRow label="Training Days" value={program.trainingDays || 'Not set'} />
@@ -161,11 +149,17 @@ export function Stage1Summary({ program }: { program: any }) {
                 <h4 className="font-semibold text-muted-foreground text-[10px] uppercase tracking-widest mb-2">Approval Status</h4>
                 <div className="pl-4 border-l-2 border-muted">
                     <div className="flex flex-wrap gap-2 mt-1 mb-3">
-                        <Badge variant={program.financeApprovalReceived ? "default" : "outline"} className="text-xs font-normal px-2">
-                            Finance: {program.financeApprovalReceived ? "✅ Approved" : "⏳ Pending"}
+                        <Badge variant={program.financeApprovalReceived ? "default" : "outline"} className="text-xs font-normal px-2 flex items-center gap-1">
+                            {program.financeApprovalReceived
+                                ? <><CircleCheck className="h-3 w-3 text-emerald-500" /> Finance: Approved</>
+                                : <><Clock className="h-3 w-3 text-amber-500" /> Finance: Pending</>
+                            }
                         </Badge>
-                        <Badge variant={program.handoverAcceptedByOps ? "default" : "outline"} className="text-xs font-normal px-2">
-                            Ops: {program.handoverAcceptedByOps ? "✅ Accepted" : "⏳ Pending"}
+                        <Badge variant={program.handoverAcceptedByOps ? "default" : "outline"} className="text-xs font-normal px-2 flex items-center gap-1">
+                            {program.handoverAcceptedByOps
+                                ? <><CircleCheck className="h-3 w-3 text-emerald-500" /> Ops: Accepted</>
+                                : <><Clock className="h-3 w-3 text-amber-500" /> Ops: Pending</>
+                            }
                         </Badge>
                     </div>
                     {program.salesOwner && (

@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { format, parse, isValid } from "date-fns"
 
 /**
  * Shared date utilities for TreOpsFlow.
@@ -7,23 +7,79 @@ import { format } from "date-fns"
  */
 
 /**
- * Parse a programDates string (JSON array or plain string) into a Date.
- * Returns null if parsing fails.
+ * Safely parse a date string that could be in ISO (yyyy-MM-dd), locale "PP" (Mar 18, 2026), or full ISO format.
+ * Falls back gracefully across formats.
+ */
+function safeParseSingle(str: string): Date | null {
+    if (!str) return null
+    const trimmed = str.trim()
+    // Try native Date constructor first (handles ISO and many formats)
+    const d = new Date(trimmed)
+    if (isValid(d) && !isNaN(d.getTime())) return d
+    // Try date-fns parse with common formats
+    const formats = ["MMM d, yyyy", "MMM dd, yyyy", "yyyy-MM-dd", "dd MMM yyyy"]
+    for (const fmt of formats) {
+        try {
+            const parsed = parse(trimmed, fmt, new Date())
+            if (isValid(parsed)) return parsed
+        } catch {
+            // continue to next format
+        }
+    }
+    return null
+}
+
+/**
+ * Parse a programDates string (JSON array, " - " range, or plain string) into a Date.
+ * Returns the first/start date. Returns null if parsing fails.
  */
 export function parseProgramDate(dateStr: string | null | undefined): Date | null {
     if (!dateStr) return null
     try {
+        // Try JSON array format: ["2026-03-18", "2026-03-20"]
         try {
             const parsed = JSON.parse(dateStr)
             if (Array.isArray(parsed) && parsed.length > 0) {
-                const d = new Date(parsed[0])
-                return isNaN(d.getTime()) ? null : d
+                return safeParseSingle(parsed[0])
             }
         } catch {
-            // Not JSON, try direct parse
+            // Not JSON, continue
         }
-        const d = new Date(dateStr)
-        return isNaN(d.getTime()) ? null : d
+        // Try range format: "2026-03-18 - 2026-03-20" or "Mar 18, 2026 - Mar 22, 2026"
+        if (dateStr.includes(' - ')) {
+            return safeParseSingle(dateStr.split(' - ')[0])
+        }
+        // Plain date string
+        return safeParseSingle(dateStr)
+    } catch {
+        return null
+    }
+}
+
+/**
+ * Parse the end date from a programDates range string.
+ * Returns null if not a range or parsing fails.
+ */
+export function parseProgramEndDate(dateStr: string | null | undefined): Date | null {
+    if (!dateStr) return null
+    try {
+        // JSON array format
+        try {
+            const parsed = JSON.parse(dateStr)
+            if (Array.isArray(parsed) && parsed.length > 1) {
+                return safeParseSingle(parsed[parsed.length - 1])
+            }
+        } catch {
+            // Not JSON
+        }
+        // Range format: "2026-03-18 - 2026-03-20" or "Mar 18, 2026 - Mar 22, 2026"
+        if (dateStr.includes(' - ')) {
+            const parts = dateStr.split(' - ')
+            if (parts.length >= 2) {
+                return safeParseSingle(parts[parts.length - 1])
+            }
+        }
+        return null
     } catch {
         return null
     }
@@ -31,6 +87,7 @@ export function parseProgramDate(dateStr: string | null | undefined): Date | nul
 
 /**
  * Format a programDates string for display.
+ * Handles single dates and date ranges (both JSON array and " - " formats).
  * @param dateStr - Raw programDates value from database
  * @param formatStr - date-fns format string (default: "dd MMM yyyy")
  * @returns Formatted date string or "N/A"
@@ -39,10 +96,16 @@ export function formatProgramDate(
     dateStr: string | null | undefined,
     formatStr: string = "dd MMM yyyy"
 ): string {
-    const d = parseProgramDate(dateStr)
-    if (!d) return "N/A"
+    const startDate = parseProgramDate(dateStr)
+    if (!startDate) return "N/A"
     try {
-        return format(d, formatStr)
+        const endDate = parseProgramEndDate(dateStr)
+        const startFormatted = format(startDate, formatStr)
+        if (endDate && endDate.getTime() !== startDate.getTime()) {
+            const endFormatted = format(endDate, formatStr)
+            return `${startFormatted} - ${endFormatted}`
+        }
+        return startFormatted
     } catch {
         return dateStr || "N/A"
     }

@@ -107,15 +107,16 @@ export function DashboardView({ programs, userRole }: DashboardViewProps) {
                     <p className="text-sm text-muted-foreground mt-0.5">Program lifecycle overview</p>
                 </div>
 
-                <div className="flex items-center gap-3">                    <a href="/api/programs/export" download>
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                    <a href="/api/programs/export" download className="hidden sm:inline-flex">
                         <Button size="sm" variant="outline" className="shadow-sm">
                             <Download className="h-4 w-4 mr-1" /> Export
                         </Button>
                     </a>
 
                     {isSales && (
-                        <Link href="/dashboard/programs/new">
-                            <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-sm">
+                        <Link href="/dashboard/programs/new" className="w-full sm:w-auto">
+                            <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-sm w-full sm:w-auto">
                                 <Plus className="h-4 w-4 mr-1" /> New Program
                             </Button>
                         </Link>

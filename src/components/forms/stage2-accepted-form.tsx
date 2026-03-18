@@ -145,10 +145,10 @@ export function Stage2AcceptedForm({
     return (
         <TooltipProvider delayDuration={300}>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-semibold text-green-600 dark:text-green-500 flex items-center gap-2">
-                            <Users className="h-5 w-5" />
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-4 sm:space-y-6 border border-border p-3 sm:p-6 rounded-xl bg-card shadow-sm">
+                    <div className="flex justify-between items-center mb-4 sm:mb-6">
+                        <h3 className="text-base sm:text-lg font-semibold text-green-600 dark:text-green-500 flex items-center gap-2">
+                            <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                             Accepted Handover
                         </h3>
                     {!isReadOnly && (
@@ -157,14 +157,15 @@ export function Stage2AcceptedForm({
                             variant="destructive"
                             size="sm"
                             onClick={() => setShowRejectModal(true)}
+                            className="h-7 sm:h-9 text-xs sm:text-sm"
                         >
-                            <X className="h-4 w-4 mr-1" />
+                            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                             Reject
                         </Button>
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {/* Left Column: Assignment & Checklist */}
                     <div className="space-y-4">
                         <h4 className="font-medium text-gray-700">Ops POC Assignment</h4>
@@ -281,9 +282,9 @@ export function Stage2AcceptedForm({
                 </div>
 
                 {!isReadOnly && (
-                    <div className="flex justify-end gap-4 pt-4 border-t">
-                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
-                            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
+                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning} className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                            {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> : <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />}
                             Save Progress
                         </Button>
 
@@ -297,8 +298,9 @@ export function Stage2AcceptedForm({
                                 !form.getValues('handoverChecklistCompleted') ||
                                 !form.getValues('meetingWithSalesDone')
                             }
+                            className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
                         >
-                            {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                            {isTransitioning ? <Loader2 className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> : <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />}
                             Move to Feasibility
                         </Button>
                     </div>

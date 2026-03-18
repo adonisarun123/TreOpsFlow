@@ -255,6 +255,14 @@ model ProgramCard {
   @@index([rejectionStatus])
   @@index([currentStage, financeApprovalReceived])
   @@index([currentStage, handoverAcceptedByOps])
+  @@index([financeApprovalReceived])
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  label     String?
+  updatedAt DateTime @updatedAt
 }
 
 model StageTransition {

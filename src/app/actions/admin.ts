@@ -45,47 +45,47 @@ export async function getDashboardStats() {
     const session = await auth()
     if (!session) return null
 
-    const totalPrograms = await prisma.programCard.count()
-    const activePrograms = await prisma.programCard.count({ where: { currentStage: { gte: 1, lte: 5 } } })
-    const completedPrograms = await prisma.programCard.count({ where: { currentStage: 6 } })
-    const pendingPrograms = await prisma.programCard.count({ where: { currentStage: 1 } })
-
-    const pipelineRevenue = await prisma.programCard.aggregate({ _sum: { deliveryBudget: true } })
-    const completedRevenue = await prisma.programCard.aggregate({
-        _sum: { deliveryBudget: true },
-        where: { currentStage: 6 }
-    })
-
-    // Stage distribution
-    const stageCounts = await Promise.all(
-        [1, 2, 3, 4, 5, 6].map(async (stage) => ({
-            stage,
-            count: await prisma.programCard.count({ where: { currentStage: stage } }),
-        }))
-    )
-
-    // Revenue growth: this month vs last month
     const now = new Date()
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-    const thisMonthRevenue = await prisma.programCard.aggregate({
-        _sum: { deliveryBudget: true },
-        where: { createdAt: { gte: thisMonthStart } }
-    })
-    const lastMonthRevenue = await prisma.programCard.aggregate({
-        _sum: { deliveryBudget: true },
-        where: { createdAt: { gte: lastMonthStart, lte: lastMonthEnd } }
-    })
+    // Batch all queries into a single transaction (~15 queries → 1 round trip)
+    const [
+        totalPrograms,
+        activePrograms,
+        completedPrograms,
+        pendingPrograms,
+        pipelineRevenue,
+        completedRevenue,
+        stageDistribution,
+        thisMonthRevenue,
+        lastMonthRevenue,
+        weeklyNew,
+    ] = await prisma.$transaction([
+        prisma.programCard.count(),
+        prisma.programCard.count({ where: { currentStage: { gte: 1, lte: 5 } } }),
+        prisma.programCard.count({ where: { currentStage: 6 } }),
+        prisma.programCard.count({ where: { currentStage: 1 } }),
+        prisma.programCard.aggregate({ _sum: { deliveryBudget: true } }),
+        prisma.programCard.aggregate({ _sum: { deliveryBudget: true }, where: { currentStage: 6 } }),
+        // Single groupBy replaces 6 separate count queries
+        prisma.programCard.groupBy({ by: ['currentStage'], orderBy: { currentStage: 'asc' }, _count: { _all: true } }),
+        prisma.programCard.aggregate({ _sum: { deliveryBudget: true }, where: { createdAt: { gte: thisMonthStart } } }),
+        prisma.programCard.aggregate({ _sum: { deliveryBudget: true }, where: { createdAt: { gte: lastMonthStart, lte: lastMonthEnd } } }),
+        prisma.programCard.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+    ])
+
+    // Build stage counts from groupBy result
+    const stageCounts = [1, 2, 3, 4, 5, 6].map(stage => ({
+        stage,
+        count: (stageDistribution.find((s: any) => s.currentStage === stage)?._count as any)?._all || 0,
+    }))
 
     const thisMonthVal = thisMonthRevenue._sum.deliveryBudget || 0
     const lastMonthVal = lastMonthRevenue._sum.deliveryBudget || 0
     const growthPct = lastMonthVal > 0 ? ((thisMonthVal - lastMonthVal) / lastMonthVal) * 100 : 0
-
-    // Programs created this week
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const weeklyNew = await prisma.programCard.count({ where: { createdAt: { gte: oneWeekAgo } } })
 
     return {
         totalPrograms,
@@ -102,31 +102,28 @@ export async function getDashboardStats() {
     }
 }
 
-// Item 8: Revenue by program type
+// Revenue by program type — uses groupBy instead of fetching all records
 export async function getRevenueByType() {
     const session = await auth()
     if (!session) return []
 
-    const programs = await prisma.programCard.findMany({
-        select: { programType: true, deliveryBudget: true },
+    const grouped = await prisma.programCard.groupBy({
+        by: ['programType'],
+        orderBy: { programType: 'asc' },
+        _sum: { deliveryBudget: true },
+        _count: { _all: true },
     })
 
-    const typeMap: Record<string, { revenue: number; count: number }> = {}
-    for (const p of programs) {
-        const type = p.programType || 'Unspecified'
-        if (!typeMap[type]) typeMap[type] = { revenue: 0, count: 0 }
-        typeMap[type].revenue += p.deliveryBudget || 0
-        typeMap[type].count += 1
-    }
-
-    return Object.entries(typeMap).map(([type, data]) => ({
-        type,
-        revenue: data.revenue,
-        count: data.count,
-    })).sort((a, b) => b.revenue - a.revenue)
+    return grouped
+        .map((g: any) => ({
+            type: g.programType || 'Unspecified',
+            revenue: g._sum.deliveryBudget || 0,
+            count: g._count?._all || 0,
+        }))
+        .sort((a: any, b: any) => b.revenue - a.revenue)
 }
 
-// Item 9: Facilitator workload
+// Facilitator workload
 export async function getFacilitatorWorkload() {
     const session = await auth()
     if (!session) return []
@@ -152,7 +149,7 @@ export async function getFacilitatorWorkload() {
     })).sort((a, b) => b.active - a.active)
 }
 
-// Item 10: Equipment/transport tracking
+// Equipment/transport tracking
 export async function getTransportReport() {
     const session = await auth()
     if (!session) return []
@@ -177,7 +174,7 @@ export async function getTransportReport() {
     })
 }
 
-// Item 15: Recent activity feed (from StageTransition table)
+// Recent activity feed
 export async function getRecentActivity() {
     const session = await auth()
     if (!session) return []
@@ -204,31 +201,33 @@ export async function getRecentActivity() {
     }))
 }
 
-// Monthly revenue breakdown (last 6 months)
+// Monthly revenue — batched into single transaction instead of 6 sequential queries
 export async function getMonthlyRevenue() {
     const session = await auth()
     if (!session) return []
 
     const now = new Date()
-    const months: { month: string; revenue: number; count: number }[] = []
+    const monthRanges = Array.from({ length: 6 }, (_, i) => {
+        const idx = 5 - i
+        const start = new Date(now.getFullYear(), now.getMonth() - idx, 1)
+        const end = new Date(now.getFullYear(), now.getMonth() - idx + 1, 0)
+        const label = start.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+        return { start, end, label }
+    })
 
-    for (let i = 5; i >= 0; i--) {
-        const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
-        const monthLabel = start.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    const results = await prisma.$transaction(
+        monthRanges.map(({ start, end }) =>
+            prisma.programCard.aggregate({
+                _sum: { deliveryBudget: true },
+                _count: true,
+                where: { createdAt: { gte: start, lte: end } },
+            })
+        )
+    )
 
-        const result = await prisma.programCard.aggregate({
-            _sum: { deliveryBudget: true },
-            _count: true,
-            where: { createdAt: { gte: start, lte: end } },
-        })
-
-        months.push({
-            month: monthLabel,
-            revenue: result._sum.deliveryBudget || 0,
-            count: result._count || 0,
-        })
-    }
-
-    return months
+    return monthRanges.map((range, i) => ({
+        month: range.label,
+        revenue: results[i]._sum.deliveryBudget || 0,
+        count: results[i]._count || 0,
+    }))
 }

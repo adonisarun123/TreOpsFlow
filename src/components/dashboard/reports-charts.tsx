@@ -84,14 +84,14 @@ export function ReportsCharts({ stats, revenueByType, facilitators, monthlyReven
     return (
         <div className="space-y-6">
             {/* ── KPI Cards ── */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-l-4 border-l-indigo-500">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Revenue</CardTitle>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 md:p-6 md:pb-2">
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Pipeline Revenue</CardTitle>
                         <DollarSign className="h-4 w-4 text-indigo-500" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(stats.pipelineRevenue)}</div>
+                    <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+                        <div className="text-xl sm:text-2xl font-bold">{formatCurrency(stats.pipelineRevenue)}</div>
                         <div className={`flex items-center gap-1 text-xs mt-1 ${growthColor}`}>
                             {growthIcon}
                             <span>{stats.growthPct > 0 ? "+" : ""}{stats.growthPct}% vs last month</span>

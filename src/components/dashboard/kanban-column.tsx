@@ -27,7 +27,7 @@ export function KanbanColumn({ id, title, programs, onCardClick }: KanbanColumnP
 
     return (
         <div className={`
-            flex flex-col h-full bg-card rounded-xl border border-border min-w-[220px] flex-1 
+            flex flex-col h-full bg-card rounded-xl border border-border min-w-[180px] md:min-w-[220px] flex-1
             border-t-[3px] ${colors.border} shadow-sm
             transition-shadow duration-200
             ${isOver ? "shadow-md ring-2 ring-primary/20" : ""}

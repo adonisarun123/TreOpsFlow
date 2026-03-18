@@ -9,6 +9,7 @@ import { Stage5PostTripForm } from "@/components/forms/stage5-posttrip-form"
 import { getStageName } from "@/lib/validations"
 import { StageStepper } from "./stage-stepper"
 import { ArrowRight } from "lucide-react"
+import { useState, useEffect } from "react"
 
 interface StageTransitionModalProps {
     program: any
@@ -25,6 +26,14 @@ export function StageTransitionModal({
     onClose,
     onConfirm
 }: StageTransitionModalProps) {
+    const [sheetUrls, setSheetUrls] = useState<{ opsDataEntrySheetUrl?: string; tripExpenseSheetUrl?: string }>({})
+
+    useEffect(() => {
+        if (isOpen && program?.currentStage === 5) {
+            fetch('/api/settings').then(r => r.json()).then(setSheetUrls).catch(() => {})
+        }
+    }, [isOpen, program?.currentStage])
+
     if (!program) return null
 
     // Always show the current stage's exit form (not the drag target's form)
@@ -110,6 +119,7 @@ export function StageTransitionModal({
                                     onSuccess={handleStageMoved}
                                     onSaveOnly={handleSaved}
                                     isTransitioningToThisStage={true}
+                                    sheetUrls={sheetUrls}
                                 />
                             )}
                             {program.currentStage === 6 && (

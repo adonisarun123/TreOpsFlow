@@ -13,7 +13,30 @@
       "Bash(grep -rn \"any\\\\|TODO\\\\|FIXME\" D:/TreOps/TreOpsFlow/src/lib --include=*.ts)",
       "Bash(npx prisma:*)",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep -r \"localhost:3000\\\\|http://\\\\|https://\" /d/TreOps/TreOpsFlow/src --include=*.ts --include=*.tsx -n)",
+      "Bash(grep -r \"redirect\\\\|process.env\" /d/TreOps/TreOpsFlow/src --include=*.ts --include=*.tsx -n)",
+      "Bash(node -e \"try { require\\(''nodemailer''\\); console.log\\(''nodemailer: INSTALLED''\\) } catch\\(e\\) { console.log\\(''nodemailer: NOT INSTALLED''\\) }\")",
+      "Bash(node -e \"const fs=require\\(''''fs''''\\); const b=fs.readFileSync\\(''''public/trebound-logo.png''''\\); console.log\\(''''data:image/png;base64,''''+b.toString\\(''''base64''''\\)\\)\")",
+      "Bash(ls -la /d/TreOps/TreOpsFlow/src/app/api/programs/[id]/)",
+      "Bash(ls src/components/freelancer*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls /d/TreOps/TreOpsFlow/public/trebound-logo*)",
+      "Bash(npx next:*)",
+      "Bash(find /d/TreOps/TreOpsFlow/src/auth.* -type f)",
+      "Bash(xargs ls:*)",
+      "Bash(find /d/TreOps/TreOpsFlow -name .env* -o -name *.config.*)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(find D:TreOpsTreOpsFlow -maxdepth 2 -type f \\\\\\(-name .eslintrc* -o -name .prettierrc* -o -name *.config.* \\\\\\))",
+      "Bash(ls -la \"D:\\\\TreOps\\\\TreOpsFlow/.env\"*)",
+      "Bash(find D:TreOpsTreOpsFlow/src -name *.test.ts -o -name *.test.tsx -o -name *.spec.ts -o -name *.spec.tsx)",
+      "Bash(find D:TreOpsTreOpsFlow -maxdepth 2 -type f \\\\\\(-name *.yml -o -name *.yaml -o -name Dockerfile* -o -name .github \\\\\\))",
+      "Bash(grep -r \"cors\\\\|CORS\\\\|Access-Control\" /d/TreOps/TreOpsFlow/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"process.env\\\\|ENV\" /d/TreOps/TreOpsFlow/src --include=*.ts --include=*.tsx)",
+      "Bash(xargs cat:*)",
+      "Bash(head -60 /d/TreOps/TreOpsFlow/src/app/api/programs/[id]/stage2/route.ts)",
+      "Bash(npx jest:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }

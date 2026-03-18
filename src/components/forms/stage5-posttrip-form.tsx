@@ -41,6 +41,7 @@ interface Stage5PostTripFormProps {
     onSuccess?: () => void
     onSaveOnly?: () => void
     isTransitioningToThisStage?: boolean
+    sheetUrls?: { opsDataEntrySheetUrl?: string; tripExpenseSheetUrl?: string }
 }
 
 export function Stage5PostTripForm({
@@ -48,7 +49,8 @@ export function Stage5PostTripForm({
     isReadOnly = false,
     onSuccess,
     onSaveOnly,
-    isTransitioningToThisStage = false
+    isTransitioningToThisStage = false,
+    sheetUrls
 }: Stage5PostTripFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
@@ -136,7 +138,7 @@ export function Stage5PostTripForm({
     return (
         <TooltipProvider delayDuration={300}>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-4 sm:space-y-6 border border-border p-3 sm:p-6 rounded-xl bg-card shadow-sm">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-500 flex items-center gap-2">
                             <CheckCircle className="h-5 w-5" />
@@ -152,7 +154,11 @@ export function Stage5PostTripForm({
                         <YesNoItem name="videoReviewDone" label="Video Review" />
                         <YesNoItem name="sharePicsToClient" label="Share Pics to Client" />
                         <YesNoItem name="opsDataEntryDone" label="Ops Data Entry" />
-                        <a href="https://docs.google.com/spreadsheets/d/1ygfLyuSyO0xJLIvdyWHqw3fqafLDAD5R_ZFXVYWWrb4/edit?gid=59400188#gid=59400188" target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-800 underline ml-6 -mt-2 block">📄 Open Ops Data Entry Sheet</a>
+                        {sheetUrls?.opsDataEntrySheetUrl ? (
+                            <a href={sheetUrls.opsDataEntrySheetUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-800 underline ml-6 -mt-2 block">📄 Open Ops Data Entry Sheet</a>
+                        ) : (
+                            <span className="text-xs text-muted-foreground ml-6 -mt-2 block">Ops Data Entry Sheet URL not configured — contact Admin</span>
+                        )}
 
                             <FormField control={form.control} name="tripExpensesBillsSubmittedToFinance" render={({ field }) => (
                                 <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border border-border bg-muted/20 p-4">
@@ -170,7 +176,11 @@ export function Stage5PostTripForm({
                                     </div>
                                 </FormItem>
                             )} />
-                        <a href="https://docs.google.com/spreadsheets/d/1KYrJrPRzHAo-MzUBuLc2tN2-TD8LZAkMzQbE1Yfk5q4/edit?gid=1107419973#gid=1107419973" target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-800 underline ml-6 -mt-2 block">📄 Open Trip Expense Sheet</a>
+                        {sheetUrls?.tripExpenseSheetUrl ? (
+                            <a href={sheetUrls.tripExpenseSheetUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:text-indigo-800 underline ml-6 -mt-2 block">📄 Open Trip Expense Sheet</a>
+                        ) : (
+                            <span className="text-xs text-muted-foreground ml-6 -mt-2 block">Trip Expense Sheet URL not configured — contact Admin</span>
+                        )}
 
                         <YesNoItem name="opsExpenseStatementSubmittedToSales" label="Ops Expense Statement + Outing Comments — Submit to Sales POC" />
 
@@ -235,9 +245,9 @@ export function Stage5PostTripForm({
                 </div>
 
                 {!isReadOnly && (
-                    <div className="flex justify-end gap-4 pt-4 border-t">
-                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
-                            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
+                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning} className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                            {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> : <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />}
                             Save Progress
                         </Button>
                         <Button
@@ -250,8 +260,9 @@ export function Stage5PostTripForm({
                                 !form.getValues('tripExpensesBillsSubmittedToFinance') ||
                                 !form.getValues('opsDataEntryDone')
                             }
+                            className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
                         >
-                            {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                            {isTransitioning ? <Loader2 className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> : <Archive className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />}
                             Close Program & Move to Done
                         </Button>
                     </div>

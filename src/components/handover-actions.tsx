@@ -82,11 +82,11 @@ export function HandoverActions({ program, session }: { program: any; session: a
                     <p className="text-sm text-gray-600 mb-4">
                         Review the budget and approve or reject this program.
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                             onClick={onApproveFinance}
                             disabled={isLoading}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                         >
                             {isLoading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -99,6 +99,7 @@ export function HandoverActions({ program, session }: { program: any; session: a
                             variant="destructive"
                             onClick={() => setShowFinanceRejectModal(true)}
                             disabled={isLoading}
+                            className="w-full sm:w-auto"
                         >
                             <X className="mr-2 h-4 w-4" />
                             Reject Budget
@@ -119,11 +120,12 @@ export function HandoverActions({ program, session }: { program: any; session: a
                             </span>
                         )}
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                             variant="destructive"
                             onClick={() => setShowOpsRejectModal(true)}
                             disabled={isLoading}
+                            className="w-full sm:w-auto"
                         >
                             <X className="mr-2 h-4 w-4" />
                             Reject — Missing Info

@@ -62,8 +62,8 @@ export function Sidebar({ userRole, userName, pendingCount, onSignOut }: Sidebar
     const sidebarContent = (
         <div className="flex flex-col h-full">
             {/* Brand */}
-            <div className="px-4 py-5 border-b border-sidebar-border flex flex-col items-center gap-2">
-                <Image src="/logo.png" alt="Knot by Trebound" width={288} height={288} className="rounded-2xl" />
+            <div className="px-4 py-4 border-b border-sidebar-border flex flex-col items-center gap-2">
+                <Image src="/logo.png" alt="Knot by Trebound" width={200} height={200} className="rounded-2xl w-[140px] md:w-[180px]" />
             </div>
 
             {/* Navigation */}
@@ -127,7 +127,7 @@ export function Sidebar({ userRole, userName, pendingCount, onSignOut }: Sidebar
             {/* Mobile toggle */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-card border shadow-sm text-foreground"
+                className="fixed top-3 left-3 z-50 md:hidden p-2 rounded-lg bg-card border shadow-md text-foreground"
             >
                 {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -142,7 +142,7 @@ export function Sidebar({ userRole, userName, pendingCount, onSignOut }: Sidebar
 
             {/* Sidebar */}
             <aside className={`
-                fixed md:sticky top-0 left-0 h-screen w-64 bg-sidebar z-40
+                fixed md:sticky top-0 left-0 h-screen w-[72vw] max-w-64 md:w-64 bg-sidebar z-40
                 transition-transform duration-200 ease-in-out
                 ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
             `}>

@@ -18,10 +18,10 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     const { to, subject, html, text } = payload
     const recipients = Array.isArray(to) ? to : [to]
 
-    // Stub: log to console in development
-    if (process.env.NODE_ENV !== 'production' || !process.env.EMAIL_HOST) {
+    // Skip sending if SMTP is not configured — log to console instead
+    if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER) {
         console.log(`[EMAIL STUB] To: ${recipients.join(', ')} | Subject: ${subject}`)
-        console.log(`[EMAIL STUB] Body: ${text || html.slice(0, 200)}...`)
+        console.log(`[EMAIL STUB] Set EMAIL_HOST and EMAIL_USER env vars to enable real email sending`)
         return { success: true }
     }
 

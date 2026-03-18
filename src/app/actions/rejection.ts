@@ -214,33 +214,45 @@ export async function resubmitProgram(programId: string) {
 }
 
 /**
- * Get pending approvals count and list for Finance/Ops users
- * Now supports simultaneous review: Ops sees all Stage 1 programs
+ * Get pending approvals count and list for Finance/Ops/Admin users.
+ *
+ * Finance Approval is INDEPENDENT of Ops stage progression:
+ *   - Finance sees ALL programs where financeApprovalReceived=false, regardless of stage (up to Stage 5).
+ *   - Ops sees programs in Stage 1-2 where handoverAcceptedByOps=false.
+ *   - Admin sees the combined view of both.
  */
 export async function getPendingApprovals(userRole: string) {
     try {
         let programs: any[] = []
 
         if (userRole === 'Admin') {
-            // Admin sees ALL programs in Stage 1 that need either Finance or Ops action
+            // Admin sees both Finance-pending and Ops-pending programs
             programs = await prisma.programCard.findMany({
                 where: {
-                    currentStage: 1,
                     OR: [
-                        { financeApprovalReceived: false },
-                        { handoverAcceptedByOps: false },
+                        // Finance pending: any active program without finance approval
+                        {
+                            financeApprovalReceived: false,
+                            currentStage: { lt: 6 },
+                            rejectionStatus: null,
+                        },
+                        // Ops pending: Stage 1-2 programs without ops acceptance
+                        {
+                            currentStage: { in: [1, 2] },
+                            handoverAcceptedByOps: false,
+                            rejectionStatus: null,
+                        },
                     ],
-                    rejectionStatus: null,
                 },
                 include: { salesOwner: true },
                 orderBy: { createdAt: 'desc' },
             })
         } else if (userRole === 'Finance') {
-            // Finance: Programs in Stage 1 without approval and not rejected by finance
+            // Finance: ALL programs where finance hasn't approved yet, regardless of stage
             programs = await prisma.programCard.findMany({
                 where: {
-                    currentStage: 1,
                     financeApprovalReceived: false,
+                    currentStage: { lt: 6 },
                     OR: [
                         { rejectionStatus: null },
                         { rejectionStatus: { not: 'rejected_finance' } }
@@ -250,11 +262,11 @@ export async function getPendingApprovals(userRole: string) {
                 orderBy: { createdAt: 'desc' },
             })
         } else if (userRole === 'Ops') {
-            // Ops: ALL programs in Stage 1 that haven't been rejected by ops
-            // (simultaneous review — no longer requires Finance approval first)
+            // Ops: Stage 1 & 2 programs where handover not yet accepted
             programs = await prisma.programCard.findMany({
                 where: {
-                    currentStage: 1,
+                    currentStage: { in: [1, 2] },
+                    handoverAcceptedByOps: false,
                     OR: [
                         { rejectionStatus: null },
                         { rejectionStatus: { not: 'rejected_ops' } }

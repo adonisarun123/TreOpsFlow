@@ -87,11 +87,11 @@ export function RejectionFeedback({ program, isOwner }: RejectionFeedbackProps) 
                 )}
 
                 {isOwner && (
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
                         <Button
                             onClick={handleResubmit}
                             disabled={isResubmitting}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                         >
                             {isResubmitting ? (
                                 <>

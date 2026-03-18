@@ -4,12 +4,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Settings, User, Bell, Shield, Info, Database, ExternalLink } from "lucide-react"
+import { Settings, User, Bell, Shield, Info, Database, ExternalLink, FileSpreadsheet } from "lucide-react"
+import { getAppSettings } from "@/app/actions/settings"
+import { SheetUrlForm } from "@/components/settings/sheet-url-form"
 
 export default async function SettingsPage() {
     const session = await auth()
     const user = session?.user as any
     const isAdmin = user?.role === 'Admin'
+
+    const settings = isAdmin ? await getAppSettings() : []
+    const settingsMap = Object.fromEntries((settings as any[]).map((s: any) => [s.key, s.value]))
 
     return (
         <div className="space-y-6">
@@ -108,6 +113,22 @@ export default async function SettingsPage() {
                                     </div>
                                 ))}
                             </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Sheet URLs — Admin only */}
+                {isAdmin && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base flex items-center gap-2"><FileSpreadsheet className="h-4 w-4" /> Sheet URLs</CardTitle>
+                            <CardDescription>Configure Google Sheet links used in Stage 5 forms (Admin only)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <SheetUrlForm
+                                opsDataEntrySheetUrl={settingsMap['opsDataEntrySheetUrl'] || ''}
+                                tripExpenseSheetUrl={settingsMap['tripExpenseSheetUrl'] || ''}
+                            />
                         </CardContent>
                     </Card>
                 )}

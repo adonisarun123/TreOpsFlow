@@ -168,7 +168,7 @@ export function Stage3FeasibilityForm({
     return (
         <TooltipProvider delayDuration={300}>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSave)} className="space-y-6 border border-border p-6 rounded-xl bg-card shadow-sm">
+                <form onSubmit={form.handleSubmit(onSave)} className="space-y-4 sm:space-y-6 border border-border p-3 sm:p-6 rounded-xl bg-card shadow-sm">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-500 flex items-center gap-2">
                             <ClipboardCheck className="h-5 w-5" />
@@ -281,9 +281,9 @@ export function Stage3FeasibilityForm({
                     </div>
 
                 {!isReadOnly && (
-                    <div className="flex justify-end gap-4 pt-4 border-t">
-                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning}>
-                            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
+                        <Button type="submit" variant="outline" disabled={isLoading || isTransitioning} className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                            {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> : <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />}
                             Save Progress
                         </Button>
                         <Button
@@ -297,8 +297,9 @@ export function Stage3FeasibilityForm({
                                 !form.getValues('logisticsChecklist') ||
                                 !form.getValues('finalPacking')
                             }
+                            className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
                         >
-                            {isTransitioning ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                            {isTransitioning ? <Loader2 className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> : <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />}
                             Move to Delivery
                         </Button>
                     </div>

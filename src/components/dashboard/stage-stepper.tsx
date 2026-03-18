@@ -41,26 +41,26 @@ export function StageStepper({ currentStage, compact = false }: StageStepperProp
                             <div className="flex flex-col items-center">
                                 {/* Dot / Check */}
                                 <div className={`
-                                    ${compact ? "h-6 w-6" : "h-8 w-8"} rounded-full flex items-center justify-center
+                                    ${compact ? "h-5 w-5 sm:h-6 sm:w-6" : "h-6 w-6 sm:h-8 sm:w-8"} rounded-full flex items-center justify-center
                                     transition-all duration-300 shrink-0
                                     ${isCompleted
                                         ? `${colors.done} text-white`
                                         : isCurrent
-                                            ? `${colors.active} text-white ring-4 ${colors.ring} shadow-sm`
+                                            ? `${colors.active} text-white ring-2 sm:ring-4 ${colors.ring} shadow-sm`
                                             : "bg-muted text-muted-foreground border-2 border-border"
                                     }
                                 `}>
                                     {isCompleted ? (
-                                        <Check className={compact ? "h-3 w-3" : "h-4 w-4"} strokeWidth={3} />
+                                        <Check className={compact ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3 w-3 sm:h-4 sm:w-4"} strokeWidth={3} />
                                     ) : (
-                                        <span className={`font-bold ${compact ? "text-[10px]" : "text-xs"}`}>{stage.id}</span>
+                                        <span className={`font-bold ${compact ? "text-[9px] sm:text-[10px]" : "text-[10px] sm:text-xs"}`}>{stage.id}</span>
                                     )}
                                 </div>
 
-                                {/* Label */}
+                                {/* Label - hidden on very small screens in compact mode */}
                                 {!compact && (
                                     <span className={`
-                                        mt-1.5 text-[11px] font-medium text-center whitespace-nowrap
+                                        mt-1 sm:mt-1.5 text-[7px] sm:text-[11px] font-medium text-center whitespace-nowrap
                                         ${isCurrent ? "text-foreground" : "text-muted-foreground"}
                                     `}>
                                         {stage.name}
@@ -71,9 +71,9 @@ export function StageStepper({ currentStage, compact = false }: StageStepperProp
                             {/* Connector line */}
                             {index < STAGES.length - 1 && (
                                 <div className={`
-                                    flex-1 ${compact ? "h-0.5 mx-1" : "h-0.5 mx-2"} rounded-full
+                                    flex-1 ${compact ? "h-[1.5px] mx-0.5 sm:mx-1" : "h-0.5 mx-0.5 sm:mx-2"} rounded-full
                                     ${isCompleted ? colors.done : "bg-border"}
-                                    ${compact ? "mb-0" : "mb-5"}
+                                    ${compact ? "mb-0" : "mb-4 sm:mb-5"}
                                     transition-colors duration-300
                                 `} />
                             )}

@@ -123,7 +123,7 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
             </div>
 
             {/* Content Table */}
-            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -182,9 +182,9 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
 
             {/* Pagination Controls */}
             {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30 rounded-b-xl">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {((pagination.page - 1) * pagination.pageSize) + 1}–{Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} programs
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-border bg-muted/30 rounded-b-xl">
+                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                        Showing {((pagination.page - 1) * pagination.pageSize) + 1}–{Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total}
                     </p>
                     <div className="flex items-center gap-2">
                         <Button
@@ -194,10 +194,10 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
                             onClick={() => navigateWithParams({ page: String(pagination.page - 1) })}
                         >
                             <ChevronLeft className="h-4 w-4" />
-                            Previous
+                            <span className="hidden sm:inline">Previous</span>
                         </Button>
-                        <span className="text-sm text-muted-foreground px-2">
-                            Page {pagination.page} of {pagination.totalPages}
+                        <span className="text-xs sm:text-sm text-muted-foreground px-1 sm:px-2">
+                            {pagination.page} / {pagination.totalPages}
                         </span>
                         <Button
                             variant="outline"
@@ -205,7 +205,7 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
                             disabled={pagination.page >= pagination.totalPages}
                             onClick={() => navigateWithParams({ page: String(pagination.page + 1) })}
                         >
-                            Next
+                            <span className="hidden sm:inline">Next</span>
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>

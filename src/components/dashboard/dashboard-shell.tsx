@@ -1,5 +1,6 @@
 "use client"
 
+import { signOut } from "next-auth/react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 
 interface DashboardShellProps {
@@ -11,12 +12,7 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children, userRole, userName, pendingCount }: DashboardShellProps) {
     const handleSignOut = async () => {
-        // Call the server action via form submission
-        const form = document.createElement("form")
-        form.method = "POST"
-        form.action = "/api/auth/signout"
-        document.body.appendChild(form)
-        form.submit()
+        await signOut({ callbackUrl: "/login" })
     }
 
     return (
@@ -28,7 +24,7 @@ export function DashboardShell({ children, userRole, userName, pendingCount }: D
                 onSignOut={handleSignOut}
             />
             <main className="flex-1 min-w-0 overflow-hidden">
-                <div className="p-4 md:p-6 lg:p-8">
+                <div className="p-3 pt-14 md:pt-6 md:p-6 lg:p-8">
                     {children}
                 </div>
             </main>

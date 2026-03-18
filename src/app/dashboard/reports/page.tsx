@@ -2,6 +2,8 @@ import { auth } from "@/auth"
 import { getDashboardStats, getRevenueByType, getFacilitatorWorkload, getMonthlyRevenue, getRecentActivity, getTransportReport } from "@/app/actions/admin"
 import { ReportsCharts } from "@/components/dashboard/reports-charts"
 
+export const revalidate = 60
+
 export default async function ReportsPage() {
     const session = await auth()
     if (!session) return null

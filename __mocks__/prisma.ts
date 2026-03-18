@@ -11,6 +11,7 @@ export const prisma = {
         delete: jest.fn(),
         count: jest.fn(),
         aggregate: jest.fn(),
+        groupBy: jest.fn(),
     },
     stageTransition: {
         create: jest.fn(),
@@ -20,4 +21,12 @@ export const prisma = {
         findUnique: jest.fn(),
         findMany: jest.fn(),
     },
+    appSetting: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        upsert: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+    },
+    $transaction: jest.fn(),
 }
