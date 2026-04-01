@@ -43,7 +43,23 @@
       "Bash(grep -v \"^$\")",
       "Bash(echo \"EXIT CODE: $?\")",
       "Bash(cd /d D:TreOpsTreOpsFlow)",
-      "Bash(grep -r salesOwner src/components/ --include=*.tsx --include=*.ts)"
+      "Bash(grep -r salesOwner src/components/ --include=*.tsx --include=*.ts)",
+      "Bash(wc -l src/components/**/*.tsx)",
+      "Bash(wc -l /d/TreOps/TreOpsFlow/__tests__/**/*.test.ts)",
+      "Bash(wc -l src/lib/*.ts)",
+      "Bash(grep -r \"include\\\\|select\" /d/TreOps/TreOpsFlow/src/app/actions/*.ts)",
+      "Bash(wc -l src/app/actions/*.ts)",
+      "Bash(wc -l src/app/api/**/*.ts)",
+      "Bash(grep -r \"parseAsync\\\\|parse\\\\|validate\" /d/TreOps/TreOpsFlow/src/app/actions/*.ts)",
+      "Bash(grep -n \"CreateUserSchema\\\\|import.*Schema\" /d/TreOps/TreOpsFlow/src/app/actions/*.ts)",
+      "Bash(sed 's/\"\"\"\"[,]*//g')",
+      "Bash(ls -1 src/app/api/programs/*/)",
+      "Bash(wc -l src/**/*.ts src/**/*.tsx)",
+      "Bash(ls -1 src/components/ui/*.tsx)",
+      "Bash(find __tests__ -name *.ts -o -name *.tsx)",
+      "Bash(grep -v \":0$\")",
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(wc -l __tests__/**/*.test.ts)"
     ]
   }
 }

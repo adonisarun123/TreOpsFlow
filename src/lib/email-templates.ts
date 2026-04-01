@@ -1,6 +1,16 @@
 // Email template utilities and HTML templates for workflow notifications
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+/**
+ * Returns the application URL at runtime (not module-load time).
+ * Ensures env var is read fresh on each call — critical for production deployments.
+ */
+function getAppUrl(): string {
+    const url = process.env.NEXT_PUBLIC_APP_URL
+    if (!url && process.env.NODE_ENV === 'production') {
+        console.error('[EMAIL] NEXT_PUBLIC_APP_URL is not set — email links will be broken!')
+    }
+    return url || 'http://localhost:3000'
+}
 
 // Base email template wrapper
 function baseTemplate(content: string): string {
@@ -68,7 +78,7 @@ export function programCreatedEmail(data: {
 
         <p>The program is awaiting <strong>Finance approval</strong> before it can proceed to the Ops team.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program Details</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">View Program Details</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -102,7 +112,7 @@ export function financeApprovalRequestedEmail(data: {
 
         <p>Please review and approve the budget to allow this program to proceed to the Ops team.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Approve</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">Review & Approve</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -133,7 +143,7 @@ export function budgetApprovedEmail(data: {
 
         <p>The program is now awaiting <strong>Ops handover acceptance</strong> to move to Stage 2.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">View Program</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -169,7 +179,7 @@ export function opsHandoverReadyEmail(data: {
 
         <p><strong>Action Required:</strong> Please review the program details and click "Accept Handover (Ops)" to proceed to Stage 2.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Accept Handover</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">Review & Accept Handover</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -204,7 +214,7 @@ export function handoverToOpsEmail(data: {
 
         <p>Please begin working on the program logistics and preparations.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Start Working</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">Start Working</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -244,7 +254,7 @@ export function stageCompletedEmail(data: {
 
         <p>The program has automatically progressed to the next stage. Please continue with the required tasks.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">View Program</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -278,7 +288,7 @@ export function programClosedEmail(data: {
 
         <p>All post-program tasks have been completed. The program is now locked and archived.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Final Report</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">View Final Report</a>
         
         <p>Thank you for your contribution to this program's success!<br>Knot by Trebound</p>
     `
@@ -320,7 +330,7 @@ export function financeRejectedEmail(data: {
             <li>Resubmit for Finance approval</li>
         </ul>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Edit Program</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">Review & Edit Program</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -363,7 +373,7 @@ export function opsRejectedEmail(data: {
             <li>Resubmit for Ops handover</li>
         </ul>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review & Edit Program</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">Review & Edit Program</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -397,7 +407,7 @@ export function programResubmittedEmail(data: {
 
         <p>The Sales team has made changes based on your previous feedback. Please review the updated program.</p>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">Review Program</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">Review Program</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `
@@ -445,7 +455,7 @@ export function programReopenedEmail(data: {
             <li>Proceed to closure when ready</li>
         </ul>
         
-        <a href="${APP_URL}/dashboard/programs/${data.id}" class="button">View Program Details</a>
+        <a href="${getAppUrl()}/dashboard/programs/${data.id}" class="button">View Program Details</a>
         
         <p>Thank you,<br>Knot by Trebound</p>
     `

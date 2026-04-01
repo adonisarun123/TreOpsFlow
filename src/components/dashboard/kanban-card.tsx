@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { CalendarIcon, Building2, Eye, GripVertical } from "lucide-react"
+import { CalendarIcon, Building2, Eye, GripVertical, MapPin, Users } from "lucide-react"
 import { formatProgramDate, getTimelineBadge } from "@/lib/date-utils"
 import type { ProgramWithSalesOwner } from "@/types"
 
@@ -100,6 +100,31 @@ export function KanbanCard({ program, onCardClick }: KanbanCardProps) {
                         <Building2 className="h-3 w-3 shrink-0" />
                         <span className="truncate">{program.companyName || "No Client"}</span>
                     </div>
+
+                    {/* Program Type badge */}
+                    {program.programType && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium truncate">
+                                {program.programType}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Location */}
+                    {program.location && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{program.location}</span>
+                        </div>
+                    )}
+
+                    {/* Pax range */}
+                    {(program.minPax || program.maxPax) && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <Users className="h-3 w-3 shrink-0" />
+                            <span>{program.minPax || '?'}-{program.maxPax || '?'} pax</span>
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">

@@ -103,22 +103,24 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
             {/* Rejection Feedback */}
             <RejectionFeedback program={program} isOwner={isOwner} />
 
-            {/* Show Stage 1 Form for rejected programs */}
-            {program.rejectionStatus && isOwner && program.currentStage === 1 && (
+            {/* Stage 1 Form — editable for program owner (Sales) */}
+            {isOwner && program.currentStage === 1 && (
                 <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 p-4">
-                        <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                            📝 Make your changes below, then click &quot;Edit & Resubmit&quot; above to send for approval again.
-                        </p>
-                    </div>
+                    {program.rejectionStatus && (
+                        <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 p-4">
+                            <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                                📝 Make your changes below, then click &quot;Edit &amp; Resubmit&quot; above to send for approval again.
+                            </p>
+                        </div>
+                    )}
                     <div className="p-5">
                         <Stage1Form program={program} isEdit={true} />
                     </div>
                 </div>
             )}
 
-            {/* Stage 1 Actions (Handover) */}
-            {program.currentStage === 1 && !program.rejectionStatus && (
+            {/* Stage 1 Actions (Finance/Ops approval) — hidden from program owner */}
+            {program.currentStage === 1 && !program.rejectionStatus && !isOwner && (
                 <div className="bg-card rounded-xl border border-border shadow-sm p-5 stage-accent-1">
                     <HandoverActions program={program} session={session} />
                 </div>

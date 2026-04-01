@@ -50,7 +50,7 @@ export function HandoverActions({ program, session }: { program: ProgramCard; se
             throw new Error(result.error)
         } else {
             showToast("Program rejected – Sales team notified", "success")
-            router.refresh()
+            router.push('/dashboard')
         }
     }
 
@@ -63,7 +63,7 @@ export function HandoverActions({ program, session }: { program: ProgramCard; se
             throw new Error(result.error)
         } else {
             showToast("Handover rejected – Sales team notified", "success")
-            router.refresh()
+            router.push('/dashboard')
         }
     }
 
