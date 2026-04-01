@@ -2,13 +2,15 @@
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { CalendarIcon, Building2, Eye, GripVertical, MapPin, Users } from "lucide-react"
+import { CalendarIcon, Building2, Eye, GripVertical, MapPin, Users, Trash2 } from "lucide-react"
 import { formatProgramDate, getTimelineBadge } from "@/lib/date-utils"
 import type { ProgramWithSalesOwner } from "@/types"
 
 interface KanbanCardProps {
     program: ProgramWithSalesOwner
     onCardClick?: (program: ProgramWithSalesOwner) => void
+    userRole?: string
+    onDelete?: (program: ProgramWithSalesOwner) => void
 }
 
 const STAGE_ACCENT_COLORS: Record<number, string> = {
@@ -20,7 +22,7 @@ const STAGE_ACCENT_COLORS: Record<number, string> = {
     6: "border-l-slate-400",
 }
 
-export function KanbanCard({ program, onCardClick }: KanbanCardProps) {
+export function KanbanCard({ program, onCardClick, userRole, onDelete }: KanbanCardProps) {
     const {
         attributes,
         listeners,
@@ -89,6 +91,18 @@ export function KanbanCard({ program, onCardClick }: KanbanCardProps) {
                                 title="View details"
                             >
                                 <Eye className="h-3.5 w-3.5 text-primary" />
+                            </button>
+                        )}
+                        {userRole === 'Admin' && onDelete && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onDelete(program)
+                                }}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-red-100 dark:hover:bg-red-950"
+                                title="Delete program"
+                            >
+                                <Trash2 className="h-3.5 w-3.5 text-red-500" />
                             </button>
                         )}
                     </div>

@@ -11,6 +11,8 @@ interface KanbanColumnProps {
     title: string
     programs: ProgramWithSalesOwner[]
     onCardClick?: (program: ProgramWithSalesOwner) => void
+    userRole?: string
+    onDelete?: (program: ProgramWithSalesOwner) => void
 }
 
 const COLUMN_COLORS: Record<string, { border: string; header: string; dot: string }> = {
@@ -22,7 +24,7 @@ const COLUMN_COLORS: Record<string, { border: string; header: string; dot: strin
     "6": { border: "border-t-slate-400", header: "bg-slate-50 dark:bg-slate-800/30", dot: "bg-slate-400" },
 }
 
-export function KanbanColumn({ id, title, programs, onCardClick }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, programs, onCardClick, userRole, onDelete }: KanbanColumnProps) {
     const { setNodeRef, isOver } = useDroppable({ id })
     const colors = COLUMN_COLORS[id] || COLUMN_COLORS["6"]
 
@@ -60,7 +62,7 @@ export function KanbanColumn({ id, title, programs, onCardClick }: KanbanColumnP
                     strategy={verticalListSortingStrategy}
                 >
                     {programs.map((program) => (
-                        <KanbanCard key={program.id} program={program} onCardClick={onCardClick} />
+                        <KanbanCard key={program.id} program={program} onCardClick={onCardClick} userRole={userRole} onDelete={onDelete} />
                     ))}
                 </SortableContext>
 

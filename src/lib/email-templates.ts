@@ -418,6 +418,42 @@ export function programResubmittedEmail(data: {
     }
 }
 
+// Program Deleted Email
+export function programDeletedEmail(data: {
+    programName: string
+    programId: string
+    clientName: string
+    deletedBy: string
+    reason: string
+}): { subject: string; html: string } {
+    const content = `
+        <h2>🗑️ Program Deleted</h2>
+        <p>Hi Team,</p>
+        <p>A program has been <strong>permanently deleted</strong> by an administrator.</p>
+
+        <div class="info-box">
+            <div class="detail-row"><span class="label">Program:</span> ${data.programName}</div>
+            <div class="detail-row"><span class="label">Program ID:</span> ${data.programId}</div>
+            <div class="detail-row"><span class="label">Client:</span> ${data.clientName}</div>
+            <div class="detail-row"><span class="label">Deleted By:</span> ${data.deletedBy}</div>
+        </div>
+
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
+            <p style="font-weight: bold; margin: 0 0 10px 0;">Reason for Deletion:</p>
+            <p style="margin: 0;">${data.reason}</p>
+        </div>
+
+        <p>This action cannot be undone. If you believe this was done in error, please contact your administrator.</p>
+
+        <p>Thank you,<br>Knot by Trebound</p>
+    `
+
+    return {
+        subject: `Program Deleted: ${data.programName} (${data.programId})`,
+        html: baseTemplate(content),
+    }
+}
+
 // Program Reopened Email
 export function programReopenedEmail(data: {
     id: string

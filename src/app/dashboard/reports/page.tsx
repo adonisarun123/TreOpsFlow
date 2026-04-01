@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { getDashboardStats, getRevenueByType, getFacilitatorWorkload, getMonthlyRevenue, getRecentActivity, getTransportReport } from "@/app/actions/admin"
+import { getDashboardStats, getRevenueByType, getFacilitatorWorkload, getMonthlyRevenue, getRecentActivity, getTransportReport, getAverageZFDScore, getPendingFinanceCount, getNeedsAttention } from "@/app/actions/admin"
 import { ReportsCharts } from "@/components/dashboard/reports-charts"
 
 export const revalidate = 60
@@ -8,13 +8,16 @@ export default async function ReportsPage() {
     const session = await auth()
     if (!session) return null
 
-    const [stats, revenueByType, facilitators, monthlyRevenue, recentActivity, transportData] = await Promise.all([
+    const [stats, revenueByType, facilitators, monthlyRevenue, recentActivity, transportData, zfdScore, pendingFinanceCount, needsAttention] = await Promise.all([
         getDashboardStats(),
         getRevenueByType(),
         getFacilitatorWorkload(),
         getMonthlyRevenue(),
         getRecentActivity(),
         getTransportReport(),
+        getAverageZFDScore(),
+        getPendingFinanceCount(),
+        getNeedsAttention(),
     ])
 
     if (!stats) return null
@@ -35,6 +38,9 @@ export default async function ReportsPage() {
                 monthlyRevenue={monthlyRevenue}
                 recentActivity={recentActivity}
                 transportData={transportData}
+                zfdScore={zfdScore}
+                pendingFinanceCount={pendingFinanceCount}
+                needsAttention={needsAttention}
             />
         </div>
     )

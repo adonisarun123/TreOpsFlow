@@ -20,11 +20,13 @@ import { StageTransitionModal } from "./stage-transition-modal"
 import { StageReturnModal } from "./stage-return-modal"
 import { ProgramViewModal } from "./program-view-modal"
 import { showToast } from "@/components/ui/toaster"
+import { DeleteProgramModal } from "@/components/ui/delete-program-modal"
 import { useRouter } from "next/navigation"
 import type { ProgramWithSalesOwner } from "@/types"
 
 interface KanbanBoardProps {
     initialPrograms: ProgramWithSalesOwner[]
+    userRole?: string
 }
 
 const STAGES = [
@@ -36,7 +38,7 @@ const STAGES = [
     { id: "6", title: "Done" },
 ]
 
-export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
+export function KanbanBoard({ initialPrograms, userRole }: KanbanBoardProps) {
     const [programs, setPrograms] = useState<ProgramWithSalesOwner[]>(initialPrograms)
     const [activeId, setActiveId] = useState<string | null>(null)
     const [draggingProgram, setDraggingProgram] = useState<ProgramWithSalesOwner | null>(null)
@@ -48,6 +50,10 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
     // View modal state
     const [isViewModalOpen, setIsViewModalOpen] = useState(false)
     const [viewProgram, setViewProgram] = useState<ProgramWithSalesOwner | null>(null)
+
+    // Delete modal state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState<ProgramWithSalesOwner | null>(null)
 
     const [pendingTransition, setPendingTransition] = useState<{ programId: string, targetStage: number } | null>(null)
     const [transitionProgram, setTransitionProgram] = useState<ProgramWithSalesOwner | null>(null)
@@ -128,6 +134,26 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
         setIsViewModalOpen(true)
     }
 
+    function handleDeleteRequest(program: ProgramWithSalesOwner) {
+        setDeleteTarget(program)
+        setIsDeleteModalOpen(true)
+    }
+
+    async function handleDeleteConfirm(reason: string) {
+        if (!deleteTarget) return
+        const res = await fetch(`/api/programs/${deleteTarget.id}/delete`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to delete')
+        showToast('Program deleted successfully', 'success')
+        setIsDeleteModalOpen(false)
+        setDeleteTarget(null)
+        router.refresh()
+    }
+
     function handleForwardConfirm() {
         setIsForwardModalOpen(false)
         setPendingTransition(null)
@@ -165,6 +191,8 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
                         title={stage.title}
                         programs={programs.filter((p) => p.currentStage === parseInt(stage.id))}
                         onCardClick={handleCardClick}
+                        userRole={userRole}
+                        onDelete={userRole === 'Admin' ? handleDeleteRequest : undefined}
                     />
                 ))}
             </div>
@@ -199,6 +227,17 @@ export function KanbanBoard({ initialPrograms }: KanbanBoardProps) {
                 onClose={() => { setIsViewModalOpen(false); setViewProgram(null) }}
                 program={viewProgram}
             />
+
+            {/* Delete modal (Admin only) */}
+            {deleteTarget && (
+                <DeleteProgramModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => { setIsDeleteModalOpen(false); setDeleteTarget(null) }}
+                    onSubmit={handleDeleteConfirm}
+                    programName={deleteTarget.programName}
+                    programId={deleteTarget.programId}
+                />
+            )}
         </DndContext>
     )
 }

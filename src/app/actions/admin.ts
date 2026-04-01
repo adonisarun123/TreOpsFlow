@@ -39,6 +39,56 @@ export async function createUser(data: z.infer<typeof CreateUserSchema>) {
     }
 }
 
+// --- UPDATE USER ---
+
+const UpdateUserSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1).optional(),
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+    role: z.enum(['Admin', 'Sales', 'Ops', 'Finance']).optional(),
+    active: z.boolean().optional(),
+    password: z.string().min(6).optional().or(z.literal('')),
+})
+
+export async function updateUser(data: z.infer<typeof UpdateUserSchema>) {
+    const session = await auth()
+    if (session?.user?.role !== 'Admin') return { error: "Unauthorized" }
+
+    const validated = UpdateUserSchema.safeParse(data)
+    if (!validated.success) return { error: "Invalid data" }
+
+    const { id, password, ...rest } = validated.data
+
+    // Check email uniqueness if email is being changed
+    if (rest.email) {
+        const existing = await prisma.user.findFirst({
+            where: { email: rest.email, NOT: { id } }
+        })
+        if (existing) return { error: "Email already in use by another user" }
+    }
+
+    // Build update data — only include fields that were provided
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {}
+    if (rest.name !== undefined) updateData.name = rest.name
+    if (rest.email !== undefined) updateData.email = rest.email
+    if (rest.phone !== undefined) updateData.phone = rest.phone
+    if (rest.role !== undefined) updateData.role = rest.role
+    if (rest.active !== undefined) updateData.active = rest.active
+    if (password && password.length >= 6) {
+        updateData.password = await hash(password, 10)
+    }
+
+    try {
+        await prisma.user.update({ where: { id }, data: updateData })
+        revalidatePath('/dashboard/team')
+        return { success: true }
+    } catch (_e) {
+        return { error: "Failed to update user" }
+    }
+}
+
 // --- REPORTS / ANALYTICS ---
 
 export async function getDashboardStats() {
@@ -203,6 +253,55 @@ export async function getRecentActivity() {
         budget: t.programCard.deliveryBudget,
         transitionedAt: t.transitionedAt.toISOString(),
     }))
+}
+
+// Average ZFD score from completed programs
+export async function getAverageZFDScore() {
+    const session = await auth()
+    if (!session) return null
+
+    const result = await prisma.programCard.aggregate({
+        _avg: { zfdRating: true },
+        _count: { zfdRating: true },
+        where: { currentStage: 6, zfdRating: { not: null } }
+    })
+
+    return {
+        average: Math.round((result._avg.zfdRating || 0) * 10) / 10,
+        count: result._count.zfdRating || 0,
+    }
+}
+
+// Count of programs awaiting finance approval
+export async function getPendingFinanceCount() {
+    const session = await auth()
+    if (!session) return 0
+
+    return await prisma.programCard.count({
+        where: { financeApprovalReceived: false, currentStage: 1, rejectionStatus: null }
+    })
+}
+
+// Programs with no activity for >24 hours (needs attention)
+export async function getNeedsAttention() {
+    const session = await auth()
+    if (!session) return []
+
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    return await prisma.programCard.findMany({
+        where: { currentStage: { gte: 1, lte: 5 }, updatedAt: { lt: cutoff } },
+        select: {
+            id: true,
+            programId: true,
+            programName: true,
+            currentStage: true,
+            updatedAt: true,
+            companyName: true,
+            salesOwner: { select: { name: true } },
+        },
+        orderBy: { updatedAt: 'asc' },
+        take: 20,
+    })
 }
 
 // Monthly revenue — batched into single transaction instead of 6 sequential queries

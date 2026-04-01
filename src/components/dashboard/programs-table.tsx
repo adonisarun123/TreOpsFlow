@@ -20,7 +20,10 @@ import {
     Search,
     ChevronLeft,
     ChevronRight,
+    Trash2,
 } from "lucide-react"
+import { DeleteProgramModal } from "@/components/ui/delete-program-modal"
+import { showToast } from "@/components/ui/toaster"
 import { useRouter, useSearchParams } from "next/navigation"
 import { formatProgramDate, getTimelineBadge as getTimelineBadgeUtil } from "@/lib/date-utils"
 import type { ProgramWithSalesOwner } from "@/types"
@@ -48,9 +51,27 @@ function getStageClass(stage: number) {
 
 export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableProps) {
     const isSales = userRole === 'Sales' || userRole === 'Admin'
+    const isAdmin = userRole === 'Admin'
     const [searchQuery, setSearchQuery] = useState("")
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState<ProgramWithSalesOwner | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
+
+    async function handleDeleteConfirm(reason: string) {
+        if (!deleteTarget) return
+        const res = await fetch(`/api/programs/${deleteTarget.id}/delete`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to delete')
+        showToast('Program deleted successfully', 'success')
+        setIsDeleteModalOpen(false)
+        setDeleteTarget(null)
+        router.refresh()
+    }
 
     // Navigate with updated search params for server-side pagination
     function navigateWithParams(updates: Record<string, string | undefined>) {
@@ -168,11 +189,23 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
                                     </TableCell>
                                     <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{program.salesOwner?.name}</TableCell>
                                     <TableCell>
-                                        <Link href={`/dashboard/programs/${program.id}`}>
-                                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-primary hover:text-primary">
-                                                View <ArrowUpRight className="h-3 w-3 ml-1" />
-                                            </Button>
-                                        </Link>
+                                        <div className="flex items-center gap-1">
+                                            <Link href={`/dashboard/programs/${program.id}`}>
+                                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-primary hover:text-primary">
+                                                    View <ArrowUpRight className="h-3 w-3 ml-1" />
+                                                </Button>
+                                            </Link>
+                                            {isAdmin && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
+                                                    onClick={() => { setDeleteTarget(program); setIsDeleteModalOpen(true) }}
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -211,6 +244,17 @@ export function ProgramsTable({ programs, userRole, pagination }: ProgramsTableP
                         </Button>
                     </div>
                 </div>
+            )}
+
+            {/* Delete modal (Admin only) */}
+            {deleteTarget && (
+                <DeleteProgramModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => { setIsDeleteModalOpen(false); setDeleteTarget(null) }}
+                    onSubmit={handleDeleteConfirm}
+                    programName={deleteTarget.programName}
+                    programId={deleteTarget.programId}
+                />
             )}
         </div>
     )

@@ -1,5 +1,25 @@
 import type { NextConfig } from "next";
 
+// Build allowed origins list from NEXT_PUBLIC_APP_URL for server-action CSRF protection.
+// This ensures server actions (file uploads, form saves) work on custom subdomains.
+function getAllowedOrigins(): string[] {
+  const origins: string[] = []
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (appUrl) {
+    try {
+      origins.push(new URL(appUrl).host)
+    } catch { /* invalid URL, skip */ }
+  }
+  // Always allow the Netlify deploy URL if present
+  const netlifyUrl = process.env.URL || process.env.DEPLOY_URL
+  if (netlifyUrl) {
+    try {
+      origins.push(new URL(netlifyUrl).host)
+    } catch { /* skip */ }
+  }
+  return origins
+}
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
@@ -10,6 +30,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '20mb', // Supports file uploads (10MB validation limit + overhead)
+      allowedOrigins: getAllowedOrigins(), // Allow custom subdomain + Netlify URL for CSRF
     },
   } as NextConfig["experimental"], // Type assertion for experimental features
 

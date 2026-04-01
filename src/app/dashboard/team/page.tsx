@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { getUsers } from "@/app/actions/admin"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AddUserForm } from "./add-user-form"
+import { EditUserForm } from "./edit-user-form"
 
 // Server Component for the Page
 export default async function TeamPage() {
@@ -28,12 +29,14 @@ export default async function TeamPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead>Joined</TableHead>
+                            <TableHead className="w-[60px]">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.map((u: { id: string; name: string; email: string; role: string; createdAt: Date; active: boolean }) => (
-                            <TableRow key={u.id}>
+                        {users.map((u: { id: string; name: string; email: string; phone?: string | null; role: string; createdAt: Date; active: boolean }) => (
+                            <TableRow key={u.id} className={!u.active ? 'opacity-50' : ''}>
                                 <TableCell className="font-medium">{u.name}</TableCell>
                                 <TableCell>{u.email}</TableCell>
                                 <TableCell>
@@ -46,7 +49,15 @@ export default async function TeamPage() {
                                         {u.role}
                                     </span>
                                 </TableCell>
+                                <TableCell>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${u.active ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                        {u.active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </TableCell>
                                 <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                    <EditUserForm user={u} />
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

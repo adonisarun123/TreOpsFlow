@@ -174,7 +174,7 @@ export function DashboardView({ programs, userRole }: DashboardViewProps) {
             )}
 
             {/* Content */}
-            <KanbanBoard initialPrograms={programs} />
+            <KanbanBoard initialPrograms={programs} userRole={userRole} />
         </div>
     )
 }

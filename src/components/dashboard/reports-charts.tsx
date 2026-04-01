@@ -6,7 +6,8 @@ import {
     CartesianGrid,
     Area, AreaChart,
 } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Clock, ArrowRight, Users, Truck, DollarSign, Activity, Layers, CheckCircle, BarChart3 } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Clock, ArrowRight, Users, Truck, DollarSign, Activity, Layers, CheckCircle, BarChart3, Star, AlertTriangle } from "lucide-react"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 const STAGE_NAMES: Record<number, string> = {
@@ -49,6 +50,13 @@ interface ReportsChartsProps {
         teamTransportDetails: string | null; clientTransportDetails: string | null
         location: string | null; programDates: string | null
     }[]
+    zfdScore: { average: number; count: number } | null
+    pendingFinanceCount: number
+    needsAttention: {
+        id: string; programId: string; programName: string; currentStage: number
+        updatedAt: Date; companyName: string | null
+        salesOwner: { name: string } | null
+    }[]
 }
 
 function formatCurrency(n: number) {
@@ -68,7 +76,7 @@ function timeAgo(isoDate: string) {
     return `${days}d ago`
 }
 
-export function ReportsCharts({ stats, revenueByType, facilitators, monthlyRevenue, recentActivity, transportData }: ReportsChartsProps) {
+export function ReportsCharts({ stats, revenueByType, facilitators, monthlyRevenue, recentActivity, transportData, zfdScore, pendingFinanceCount, needsAttention }: ReportsChartsProps) {
     const stageData = stats.stageCounts.map(s => ({
         name: STAGE_NAMES[s.stage] || `Stage ${s.stage}`,
         count: s.count,
@@ -126,6 +134,30 @@ export function ReportsCharts({ stats, revenueByType, facilitators, monthlyReven
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalPrograms}</div>
                         <p className="text-xs text-muted-foreground">{stats.pendingPrograms} pending handover</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* ── Extra KPI Cards ── */}
+            <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2">
+                <Card className="border-l-4 border-l-yellow-500">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Avg ZFD Score</CardTitle>
+                        <Star className="h-4 w-4 text-yellow-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{zfdScore?.average || 0}<span className="text-base font-normal text-muted-foreground">/5</span></div>
+                        <p className="text-xs text-muted-foreground">{zfdScore?.count || 0} rated programs</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-orange-500">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Pending Finance Approval</CardTitle>
+                        <Clock className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{pendingFinanceCount}</div>
+                        <p className="text-xs text-muted-foreground">Programs awaiting budget review</p>
                     </CardContent>
                 </Card>
             </div>
@@ -303,6 +335,43 @@ export function ReportsCharts({ stats, revenueByType, facilitators, monthlyReven
                     </CardContent>
                 </Card>
             </div>
+            {/* ── Needs Attention ── */}
+            {needsAttention && needsAttention.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2 text-orange-600">
+                            <AlertTriangle className="h-4 w-4" /> Needs Attention
+                        </CardTitle>
+                        <CardDescription>Programs with no activity for over 24 hours</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                            {needsAttention.map(p => (
+                                <Link
+                                    key={p.id}
+                                    href={`/dashboard/programs/${p.id}`}
+                                    className="flex items-center gap-3 p-2.5 rounded-md border border-border/50 hover:bg-muted/50 transition-colors text-sm"
+                                >
+                                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STAGE_COLORS[p.currentStage - 1] || '#94a3b8' }} />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate">{p.programName}</p>
+                                        <div className="flex gap-2 text-xs text-muted-foreground">
+                                            <span className="font-mono">{p.programId}</span>
+                                            {p.companyName && <span>· {p.companyName}</span>}
+                                        </div>
+                                    </div>
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium stage-badge-${p.currentStage}`}>
+                                        {STAGE_NAMES[p.currentStage]}
+                                    </span>
+                                    <span className="text-xs text-orange-600 font-medium whitespace-nowrap shrink-0">
+                                        {timeAgo(new Date(p.updatedAt).toISOString())}
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     )
 }
