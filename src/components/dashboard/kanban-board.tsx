@@ -94,6 +94,12 @@ export function KanbanBoard({ initialPrograms, userRole, userId }: KanbanBoardPr
 
         if (!over) return
 
+        // Finance users cannot move cards between stages
+        if (userRole === 'Finance') {
+            showToast("Finance users cannot move programs between stages", "info")
+            return
+        }
+
         const activeId = active.id as string
         const overId = over.id as string
 

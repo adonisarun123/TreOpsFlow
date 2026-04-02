@@ -46,6 +46,8 @@ export function ProgramViewModal({ program, isOpen, onClose, userRole, userId }:
 
     const stage = program.currentStage
     const isSalesOwner = userId && program.salesPOCId === userId
+    const isOpsOrAdmin = userRole === 'Ops' || userRole === 'Admin'
+    const isFinance = userRole === 'Finance'
 
     const handleSaved = () => {
         // Stay in modal — form shows its own toast
@@ -78,11 +80,15 @@ export function ProgramViewModal({ program, isOpen, onClose, userRole, userId }:
                                 </span>
                             </div>
                             <DialogDescription className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
-                                {stage >= 2 && stage <= 5
+                                {stage >= 2 && stage <= 5 && isOpsOrAdmin
                                     ? "Edit fields and save progress, or move to the next stage when ready."
-                                    : stage === 1
-                                        ? "Awaiting Finance and Ops approval before editing."
-                                        : "This program has been completed and archived."
+                                    : stage >= 2 && stage <= 5 && isFinance
+                                        ? "View-only — Finance has approval access at Stage 1."
+                                        : stage === 1
+                                            ? "Awaiting Finance and Ops approval before editing."
+                                            : stage === 6
+                                                ? "This program has been completed and archived."
+                                                : "Program details and context."
                                 }
                             </DialogDescription>
                         </div>
@@ -195,34 +201,57 @@ export function ProgramViewModal({ program, isOpen, onClose, userRole, userId }:
                                             <p className="text-xs sm:text-sm text-muted-foreground">Awaiting Finance and Ops approval.</p>
                                         </div>
                                     )}
-                                    {stage === 2 && (
-                                        <Stage2AcceptedForm
-                                            program={program}
-                                            onSuccess={handleStageMoved}
-                                            onSaveOnly={handleSaved}
-                                        />
+                                    {/* Editable stage forms — Ops and Admin only */}
+                                    {isOpsOrAdmin && (
+                                        <>
+                                            {stage === 2 && (
+                                                <Stage2AcceptedForm
+                                                    program={program}
+                                                    onSuccess={handleStageMoved}
+                                                    onSaveOnly={handleSaved}
+                                                />
+                                            )}
+                                            {stage === 3 && (
+                                                <Stage3FeasibilityForm
+                                                    program={program}
+                                                    onSuccess={handleStageMoved}
+                                                    onSaveOnly={handleSaved}
+                                                />
+                                            )}
+                                            {stage === 4 && (
+                                                <Stage4DeliveryForm
+                                                    program={program}
+                                                    onSuccess={handleStageMoved}
+                                                    onSaveOnly={handleSaved}
+                                                />
+                                            )}
+                                            {stage === 5 && (
+                                                <Stage5PostTripForm
+                                                    program={program}
+                                                    onSuccess={handleStageMoved}
+                                                    onSaveOnly={handleSaved}
+                                                    sheetUrls={sheetUrls}
+                                                />
+                                            )}
+                                        </>
                                     )}
-                                    {stage === 3 && (
-                                        <Stage3FeasibilityForm
-                                            program={program}
-                                            onSuccess={handleStageMoved}
-                                            onSaveOnly={handleSaved}
-                                        />
-                                    )}
-                                    {stage === 4 && (
-                                        <Stage4DeliveryForm
-                                            program={program}
-                                            onSuccess={handleStageMoved}
-                                            onSaveOnly={handleSaved}
-                                        />
-                                    )}
-                                    {stage === 5 && (
-                                        <Stage5PostTripForm
-                                            program={program}
-                                            onSuccess={handleStageMoved}
-                                            onSaveOnly={handleSaved}
-                                            sheetUrls={sheetUrls}
-                                        />
+
+                                    {/* Read-only view for Finance (and Sales non-owner) at stages 2-5 */}
+                                    {!isOpsOrAdmin && !isSalesOwner && stage >= 2 && stage <= 5 && (
+                                        <div className="text-center py-8 sm:py-12">
+                                            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                                                <span className="text-xl sm:text-2xl">👁️</span>
+                                            </div>
+                                            <p className="text-sm sm:text-base font-medium text-foreground">Stage {stage} — {getStageName(stage)}</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                                                {isFinance ? 'Finance has view-only access.' : 'View-only access at this stage.'}
+                                            </p>
+                                            <Link href={`/dashboard/programs/${program.id}`}>
+                                                <Button variant="outline" size="sm" className="mt-3 text-xs">
+                                                    View Full Details
+                                                </Button>
+                                            </Link>
+                                        </div>
                                     )}
                                     {stage === 6 && (
                                         <div className="text-center py-8 sm:py-12">
