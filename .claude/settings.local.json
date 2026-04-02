@@ -64,7 +64,8 @@
       "Bash(grep -r \"file-upload\\\\|FileUpload\" /d/TreOps/TreOpsFlow/src --include=*.tsx --include=*.ts -B 2 -A 2)",
       "Bash(grep -r \"origin\\\\|domain\\\\|allowedOrigins\\\\|imagekit\" /d/TreOps/TreOpsFlow --include=*.ts --include=*.tsx --include=*.js --include=*.json --exclude-dir=node_modules)",
       "Bash(grep -r \"logisticsListDocument\\\\|logisticsChecklist\" /d/TreOps/TreOpsFlow/src --include=*.ts --include=*.tsx -B 2 -A 2)",
-      "Bash(dir /b \"D:\\\\TreOps\\\\TreOpsFlow\\\\.claude\\\\plans\")"
+      "Bash(dir /b \"D:\\\\TreOps\\\\TreOpsFlow\\\\.claude\\\\plans\")",
+      "Bash(findstr \"next\")"
     ]
   }
 }
