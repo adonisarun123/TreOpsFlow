@@ -31,6 +31,7 @@ import {
 interface DashboardViewProps {
     programs: ProgramWithSalesOwner[]
     userRole: string
+    userId?: string
 }
 
 const STAGE_NAMES = ["", "Tentative", "Accepted", "Feasibility", "Delivery", "Post Trip", "Done"]
@@ -77,7 +78,7 @@ const STAGE_NAMES = ["", "Tentative", "Accepted", "Feasibility", "Delivery", "Po
 //     } catch { return null }
 // }
 
-export function DashboardView({ programs, userRole }: DashboardViewProps) {
+export function DashboardView({ programs, userRole, userId }: DashboardViewProps) {
     const isSales = userRole === 'Sales' || userRole === 'Admin'
 
     const totalPrograms = programs.length
@@ -174,7 +175,7 @@ export function DashboardView({ programs, userRole }: DashboardViewProps) {
             )}
 
             {/* Content */}
-            <KanbanBoard initialPrograms={programs} userRole={userRole} />
+            <KanbanBoard initialPrograms={programs} userRole={userRole} userId={userId} />
         </div>
     )
 }

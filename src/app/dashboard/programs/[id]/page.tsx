@@ -103,7 +103,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
             {/* Rejection Feedback */}
             <RejectionFeedback program={program} isOwner={isOwner} />
 
-            {/* Stage 1 Form — editable for program owner (Sales) */}
+            {/* Stage 1 Form — editable for program owner (Sales) at ANY stage */}
             {isOwner && program.currentStage === 1 && (
                 <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
                     {program.rejectionStatus && (
@@ -117,6 +117,31 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
                         <Stage1Form program={program} isEdit={true} />
                     </div>
                 </div>
+            )}
+
+            {/* Sales Data Edit — available to owner at stages 2+ */}
+            {isOwner && program.currentStage >= 2 && (
+                <details className="bg-card rounded-xl border border-border shadow-sm overflow-hidden group">
+                    <summary className="p-5 cursor-pointer select-none flex items-center justify-between hover:bg-muted/30 transition-colors">
+                        <div>
+                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Edit Sales Data</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">Update your handover details — Ops will be notified of changes</p>
+                        </div>
+                        <span className="text-xs bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-2 py-1 rounded font-medium">
+                            Sales Only
+                        </span>
+                    </summary>
+                    <div className="border-t border-border">
+                        <div className="bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-800 px-5 py-3">
+                            <p className="text-xs text-amber-700 dark:text-amber-300">
+                                ⚠️ Editing sales data at Stage {program.currentStage} will automatically notify the Ops team with a detailed change log.
+                            </p>
+                        </div>
+                        <div className="p-5">
+                            <Stage1Form program={program} isEdit={true} />
+                        </div>
+                    </div>
+                </details>
             )}
 
             {/* Stage 1 Actions (Finance/Ops approval) — hidden from program owner */}

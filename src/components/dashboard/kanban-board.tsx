@@ -27,6 +27,7 @@ import type { ProgramWithSalesOwner } from "@/types"
 interface KanbanBoardProps {
     initialPrograms: ProgramWithSalesOwner[]
     userRole?: string
+    userId?: string
 }
 
 const STAGES = [
@@ -38,7 +39,7 @@ const STAGES = [
     { id: "6", title: "Done" },
 ]
 
-export function KanbanBoard({ initialPrograms, userRole }: KanbanBoardProps) {
+export function KanbanBoard({ initialPrograms, userRole, userId }: KanbanBoardProps) {
     const [programs, setPrograms] = useState<ProgramWithSalesOwner[]>(initialPrograms)
     const [activeId, setActiveId] = useState<string | null>(null)
     const [draggingProgram, setDraggingProgram] = useState<ProgramWithSalesOwner | null>(null)
@@ -226,6 +227,8 @@ export function KanbanBoard({ initialPrograms, userRole }: KanbanBoardProps) {
                 isOpen={isViewModalOpen}
                 onClose={() => { setIsViewModalOpen(false); setViewProgram(null) }}
                 program={viewProgram}
+                userRole={userRole}
+                userId={userId}
             />
 
             {/* Delete modal (Admin only) */}

@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Stage1Summary } from "./stage1-summary"
+import { Stage1Form } from "@/components/forms/stage1-form"
 import { Stage2AcceptedForm } from "@/components/forms/stage2-accepted-form"
 import { Stage3FeasibilityForm } from "@/components/forms/stage3-feasibility-form"
 import { Stage4DeliveryForm } from "@/components/forms/stage4-delivery-form"
@@ -20,11 +21,14 @@ interface ProgramViewModalProps {
     program: ProgramWithSalesOwner | null
     isOpen: boolean
     onClose: () => void
+    userRole?: string
+    userId?: string
 }
 
-export function ProgramViewModal({ program, isOpen, onClose }: ProgramViewModalProps) {
+export function ProgramViewModal({ program, isOpen, onClose, userRole, userId }: ProgramViewModalProps) {
     const router = useRouter()
     const [showContextPanel, setShowContextPanel] = useState(false)
+    const [editingSalesData, setEditingSalesData] = useState(false)
     const [sheetUrls, setSheetUrls] = useState<{ opsDataEntrySheetUrl?: string; tripExpenseSheetUrl?: string }>({})
 
     useEffect(() => {
@@ -33,9 +37,15 @@ export function ProgramViewModal({ program, isOpen, onClose }: ProgramViewModalP
         }
     }, [isOpen, program?.currentStage])
 
+    // Reset editing state when modal closes or program changes
+    useEffect(() => {
+        if (!isOpen) setEditingSalesData(false)
+    }, [isOpen])
+
     if (!program) return null
 
     const stage = program.currentStage
+    const isSalesOwner = userId && program.salesPOCId === userId
 
     const handleSaved = () => {
         // Stay in modal — form shows its own toast
@@ -131,56 +141,99 @@ export function ProgramViewModal({ program, isOpen, onClose }: ProgramViewModalP
                         </div>
                     </div>
 
-                    {/* Right Panel - Stage Form */}
+                    {/* Right Panel - Stage Form / Sales Edit */}
                     <div className="w-full md:w-[65%] bg-card flex flex-col min-h-0 flex-1">
                         <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
-                            {stage === 1 && (
-                                <div className="text-center py-8 sm:py-12">
-                                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3">
-                                        <span className="text-xl sm:text-2xl">📋</span>
+                            {/* Sales Owner: Edit Sales Data Mode */}
+                            {isSalesOwner && editingSalesData && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-foreground">Edit Sales Data</h3>
+                                            {stage >= 2 && (
+                                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                                                    Changes will notify the Ops team
+                                                </p>
+                                            )}
+                                        </div>
+                                        <Button variant="outline" size="sm" onClick={() => setEditingSalesData(false)} className="text-xs h-7">
+                                            Back to Stage View
+                                        </Button>
                                     </div>
-                                    <p className="text-sm sm:text-base font-medium text-foreground">Tentative Handover</p>
-                                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">Program context is shown in the left panel.</p>
-                                    <p className="text-xs sm:text-sm text-muted-foreground">Awaiting Finance and Ops approval.</p>
+                                    <Stage1Form program={program} isEdit={true} />
                                 </div>
                             )}
-                            {stage === 2 && (
-                                <Stage2AcceptedForm
-                                    program={program}
-                                    onSuccess={handleStageMoved}
-                                    onSaveOnly={handleSaved}
-                                />
-                            )}
-                            {stage === 3 && (
-                                <Stage3FeasibilityForm
-                                    program={program}
-                                    onSuccess={handleStageMoved}
-                                    onSaveOnly={handleSaved}
-                                />
-                            )}
-                            {stage === 4 && (
-                                <Stage4DeliveryForm
-                                    program={program}
-                                    onSuccess={handleStageMoved}
-                                    onSaveOnly={handleSaved}
-                                />
-                            )}
-                            {stage === 5 && (
-                                <Stage5PostTripForm
-                                    program={program}
-                                    onSuccess={handleStageMoved}
-                                    onSaveOnly={handleSaved}
-                                    sheetUrls={sheetUrls}
-                                />
-                            )}
-                            {stage === 6 && (
-                                <div className="text-center py-8 sm:py-12">
-                                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mx-auto mb-3">
-                                        <span className="text-xl sm:text-2xl">✅</span>
-                                    </div>
-                                    <p className="text-sm sm:text-base font-medium text-foreground">Program Complete</p>
-                                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">This program is archived in the Done stage.</p>
-                                </div>
+
+                            {/* Normal stage view (not editing sales data) */}
+                            {!editingSalesData && (
+                                <>
+                                    {/* Sales Owner: Show edit button at any stage */}
+                                    {isSalesOwner && (
+                                        <div className="mb-4 flex items-center justify-between p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                                            <div>
+                                                <p className="text-xs font-medium text-blue-700 dark:text-blue-300">You are the Sales owner</p>
+                                                <p className="text-[10px] text-blue-600/70 dark:text-blue-400/70">Edit your handover details anytime</p>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setEditingSalesData(true)}
+                                                className="text-xs h-7 gap-1 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                            >
+                                                <Pencil className="h-3 w-3" /> Edit Sales Data
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {stage === 1 && (
+                                        <div className="text-center py-8 sm:py-12">
+                                            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3">
+                                                <span className="text-xl sm:text-2xl">📋</span>
+                                            </div>
+                                            <p className="text-sm sm:text-base font-medium text-foreground">Tentative Handover</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">Program context is shown in the left panel.</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground">Awaiting Finance and Ops approval.</p>
+                                        </div>
+                                    )}
+                                    {stage === 2 && (
+                                        <Stage2AcceptedForm
+                                            program={program}
+                                            onSuccess={handleStageMoved}
+                                            onSaveOnly={handleSaved}
+                                        />
+                                    )}
+                                    {stage === 3 && (
+                                        <Stage3FeasibilityForm
+                                            program={program}
+                                            onSuccess={handleStageMoved}
+                                            onSaveOnly={handleSaved}
+                                        />
+                                    )}
+                                    {stage === 4 && (
+                                        <Stage4DeliveryForm
+                                            program={program}
+                                            onSuccess={handleStageMoved}
+                                            onSaveOnly={handleSaved}
+                                        />
+                                    )}
+                                    {stage === 5 && (
+                                        <Stage5PostTripForm
+                                            program={program}
+                                            onSuccess={handleStageMoved}
+                                            onSaveOnly={handleSaved}
+                                            sheetUrls={sheetUrls}
+                                        />
+                                    )}
+                                    {stage === 6 && (
+                                        <div className="text-center py-8 sm:py-12">
+                                            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mx-auto mb-3">
+                                                <span className="text-xl sm:text-2xl">✅</span>
+                                            </div>
+                                            <p className="text-sm sm:text-base font-medium text-foreground">Program Complete</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">This program is archived in the Done stage.</p>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
