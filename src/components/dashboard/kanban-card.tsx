@@ -44,9 +44,17 @@ export function KanbanCard({ program, onCardClick, userRole, onDelete }: KanbanC
     const timelineBadge = badge?.label || ""
     const timelineColor = badge?.cls || ""
 
-    const ownerInitials = program.salesOwner?.name
-        ? program.salesOwner.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
-        : "?"
+    const getInitials = (name?: string | null) => {
+        if (!name) return "?"
+        const parts = name.trim().split(/\s+/)
+        if (parts.length === 1) {
+            return parts[0].substring(0, 2).toUpperCase()
+        }
+        return (parts[0][0] + parts[1][0]).toUpperCase()
+    }
+
+    const salesInitials = getInitials(program.salesOwner?.name)
+    const opsInitials = getInitials(program.opsSPOCAssignedName)
 
     function handleClick(e: React.MouseEvent) {
         if (onCardClick && !isDragging) {
@@ -151,10 +159,19 @@ export function KanbanCard({ program, onCardClick, userRole, onDelete }: KanbanC
                             )}
                         </div>
 
-                        {/* Owner avatar */}
-                        <div className="flex items-center gap-1.5" title={program.salesOwner?.name || "Unassigned"}>
-                            <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
-                                {ownerInitials}
+                        {/* POC Avatars */}
+                        <div className="flex items-center -space-x-1 hover:space-x-1 transition-all duration-200 cursor-default">
+                            <div 
+                                className="h-5 w-5 rounded-full bg-primary/10 border border-background text-primary flex items-center justify-center text-[9px] font-bold z-10"
+                                title={`Sales POC: ${program.salesOwner?.name || "Unassigned"}`}
+                            >
+                                {salesInitials}
+                            </div>
+                            <div 
+                                className="h-5 w-5 rounded-full bg-blue-100 dark:bg-blue-900/40 border border-background text-blue-700 dark:text-blue-400 flex items-center justify-center text-[9px] font-bold z-0"
+                                title={`Ops POC: ${program.opsSPOCAssignedName || "Unassigned"}`}
+                            >
+                                {opsInitials}
                             </div>
                         </div>
                     </div>
