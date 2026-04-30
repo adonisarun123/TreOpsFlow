@@ -49,7 +49,11 @@ export function HandoverActions({ program, session }: { program: ProgramCard; se
             showToast(result.error, "error")
             throw new Error(result.error)
         } else {
-            showToast("Program rejected – Sales team notified", "success")
+            if (result.emailSent === false) {
+                showToast("Program rejected, but notification email failed to send. Please inform Sales manually.", "error")
+            } else {
+                showToast("Program rejected – Sales team notified", "success")
+            }
             router.push('/dashboard')
         }
     }
@@ -62,7 +66,11 @@ export function HandoverActions({ program, session }: { program: ProgramCard; se
             showToast(result.error, "error")
             throw new Error(result.error)
         } else {
-            showToast("Handover rejected – Sales team notified", "success")
+            if (result.emailSent === false) {
+                showToast("Handover rejected, but notification email failed to send. Please inform Sales manually.", "error")
+            } else {
+                showToast("Handover rejected – Sales team notified", "success")
+            }
             router.push('/dashboard')
         }
     }

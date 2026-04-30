@@ -336,7 +336,7 @@ export function financeRejectedEmail(data: {
     `
 
     return {
-        subject: `Program Rejected by Finance: ${data.programName}`,
+        subject: `Action needed: ${data.programName} — Finance review`,
         html: baseTemplate(content),
     }
 }
@@ -379,7 +379,7 @@ export function opsRejectedEmail(data: {
     `
 
     return {
-        subject: `Handover Rejected by Ops: ${data.programName}`,
+        subject: `Action needed: ${data.programName} — Ops review`,
         html: baseTemplate(content),
     }
 }

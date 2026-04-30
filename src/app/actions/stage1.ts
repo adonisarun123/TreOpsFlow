@@ -37,9 +37,13 @@ const STAGE1_FIELD_LABELS: Record<string, string> = {
     budgetFood: 'Budget - Food',
     budgetMiscellaneous: 'Budget - Miscellaneous',
     budgetNotes: 'Budget Notes',
+    venueName: 'Venue Name',
+    venueAddress: 'Venue Address',
     venuePOC: 'Venue POC',
     specialVenueReq: 'Special Venue Requirements',
     eventVendorDetails: 'Event Vendor Details',
+    programDurationHours: 'Program Duration (Hours)',
+    programDurationMinutes: 'Program Duration (Minutes)',
     agendaDocument: 'Agenda Document',
     objectiveDocuments: 'Objective Documents',
 }
@@ -117,9 +121,15 @@ export async function createProgram(data: Record<string, any>) {
                 budgetNotes: data.budgetNotes,
 
                 // Logistics
+                venueName: data.venueName,
+                venueAddress: data.venueAddress,
                 venuePOC: data.venuePOC,
                 specialVenueReq: data.specialVenueReq,
                 eventVendorDetails: data.eventVendorDetails,
+
+                // Program Duration
+                programDurationHours: data.programDurationHours ? parseInt(data.programDurationHours) : null,
+                programDurationMinutes: data.programDurationMinutes ? parseInt(data.programDurationMinutes) : null,
 
                 // Files
                 agendaDocument: data.agendaDocument,
@@ -262,9 +272,13 @@ export async function updateStage1(id: string, data: Record<string, any>) {
             budgetFood: data.budgetFood ? parseFloat(data.budgetFood) : null,
             budgetMiscellaneous: data.budgetMiscellaneous ? parseFloat(data.budgetMiscellaneous) : null,
             budgetNotes: data.budgetNotes,
+            venueName: data.venueName,
+            venueAddress: data.venueAddress,
             venuePOC: data.venuePOC,
             specialVenueReq: data.specialVenueReq,
             eventVendorDetails: data.eventVendorDetails,
+            programDurationHours: data.programDurationHours ? parseInt(data.programDurationHours) : null,
+            programDurationMinutes: data.programDurationMinutes ? parseInt(data.programDurationMinutes) : null,
             agendaDocument: data.agendaDocument,
             objectiveDocuments: data.objectiveDocuments,
         }

@@ -8,6 +8,17 @@ import { sendEmail } from "@/lib/email"
 import { financeRejectedEmail, opsRejectedEmail, programResubmittedEmail } from "@/lib/email-templates"
 
 /**
+ * Collect Admin user emails (for CC on rejection notifications).
+ */
+async function getAdminEmails(): Promise<string[]> {
+    const admins = await prisma.user.findMany({
+        where: { role: 'Admin', active: true },
+        select: { email: true },
+    })
+    return admins.map(a => a.email).filter((e): e is string => Boolean(e))
+}
+
+/**
  * Finance rejects a program with mandatory reason
  */
 export async function rejectFinance(programId: string, reason: string) {
@@ -38,26 +49,45 @@ export async function rejectFinance(programId: string, reason: string) {
             }
         })
 
-        // Send email to Sales Owner
+        // Send email to Sales Owner + CC all Admins
+        let emailSent = false
+        let emailError: string | undefined
         try {
+            const recipients: string[] = []
             if (program.salesOwner?.email) {
-                await sendEmail({
-                    to: program.salesOwner.email,
+                recipients.push(program.salesOwner.email)
+            } else {
+                console.warn(`[REJECT_FINANCE] Program ${programId} has no salesOwner.email — skipping primary recipient.`)
+            }
+            const adminEmails = await getAdminEmails()
+            for (const e of adminEmails) {
+                if (!recipients.includes(e)) recipients.push(e)
+            }
+
+            console.log(`[REJECT_FINANCE] programId=${programId} recipients=${recipients.join(',') || '(none)'}`)
+
+            if (recipients.length > 0) {
+                const result = await sendEmail({
+                    to: recipients,
                     ...financeRejectedEmail({
                         id: program.id,
                         programName: program.programName,
                         programId: program.programId,
-                        salesOwnerName: program.salesOwner.name || 'Sales Owner',
+                        salesOwnerName: program.salesOwner?.name || 'Sales Owner',
                         rejectionReason: reason.trim(),
                     })
                 })
+                emailSent = result.success
+                if (!result.success) emailError = result.error
+                console.log(`[REJECT_FINANCE] sendEmail result: success=${result.success}${result.error ? ` error=${result.error}` : ''}${result.stub ? ' (stub)' : ''}`)
             }
-        } catch (emailError) {
-            console.error('Finance rejection email failed:', emailError)
+        } catch (err) {
+            emailError = (err as Error)?.message || String(err)
+            console.error('[REJECT_FINANCE] Email send threw:', err)
         }
 
         revalidatePath(`/dashboard/programs/${programId}`)
-        return { success: true }
+        return { success: true, emailSent, emailError }
     } catch (error) {
         console.error('Finance rejection error:', error)
         return { success: false, error: "Failed to reject program" }
@@ -95,26 +125,45 @@ export async function rejectOpsHandover(programId: string, reason: string) {
             }
         })
 
-        // Send email to Sales Owner
+        // Send email to Sales Owner + CC all Admins
+        let emailSent = false
+        let emailError: string | undefined
         try {
+            const recipients: string[] = []
             if (program.salesOwner?.email) {
-                await sendEmail({
-                    to: program.salesOwner.email,
+                recipients.push(program.salesOwner.email)
+            } else {
+                console.warn(`[REJECT_OPS] Program ${programId} has no salesOwner.email — skipping primary recipient.`)
+            }
+            const adminEmails = await getAdminEmails()
+            for (const e of adminEmails) {
+                if (!recipients.includes(e)) recipients.push(e)
+            }
+
+            console.log(`[REJECT_OPS] programId=${programId} recipients=${recipients.join(',') || '(none)'}`)
+
+            if (recipients.length > 0) {
+                const result = await sendEmail({
+                    to: recipients,
                     ...opsRejectedEmail({
                         id: program.id,
                         programName: program.programName,
                         programId: program.programId,
-                        salesOwnerName: program.salesOwner.name || 'Sales Owner',
+                        salesOwnerName: program.salesOwner?.name || 'Sales Owner',
                         rejectionReason: reason.trim(),
                     })
                 })
+                emailSent = result.success
+                if (!result.success) emailError = result.error
+                console.log(`[REJECT_OPS] sendEmail result: success=${result.success}${result.error ? ` error=${result.error}` : ''}${result.stub ? ' (stub)' : ''}`)
             }
-        } catch (emailError) {
-            console.error('Ops rejection email failed:', emailError)
+        } catch (err) {
+            emailError = (err as Error)?.message || String(err)
+            console.error('[REJECT_OPS] Email send threw:', err)
         }
 
         revalidatePath(`/dashboard/programs/${programId}`)
-        return { success: true }
+        return { success: true, emailSent, emailError }
     } catch (error) {
         console.error('Ops rejection error:', error)
         return { success: false, error: "Failed to reject handover" }
@@ -340,27 +389,46 @@ export async function rejectOpsInStage2(programId: string, reason: string) {
             }
         })
 
-        // Send email to Sales Owner
+        // Send email to Sales Owner + CC all Admins
+        let emailSent = false
+        let emailError: string | undefined
         try {
+            const recipients: string[] = []
             if (program.salesOwner?.email) {
-                await sendEmail({
-                    to: program.salesOwner.email,
+                recipients.push(program.salesOwner.email)
+            } else {
+                console.warn(`[REJECT_OPS_S2] Program ${programId} has no salesOwner.email — skipping primary recipient.`)
+            }
+            const adminEmails = await getAdminEmails()
+            for (const e of adminEmails) {
+                if (!recipients.includes(e)) recipients.push(e)
+            }
+
+            console.log(`[REJECT_OPS_S2] programId=${programId} recipients=${recipients.join(',') || '(none)'}`)
+
+            if (recipients.length > 0) {
+                const result = await sendEmail({
+                    to: recipients,
                     ...opsRejectedEmail({
                         id: program.id,
                         programName: program.programName,
                         programId: program.programId,
-                        salesOwnerName: program.salesOwner.name || 'Sales Owner',
+                        salesOwnerName: program.salesOwner?.name || 'Sales Owner',
                         rejectionReason: reason.trim(),
                     })
                 })
+                emailSent = result.success
+                if (!result.success) emailError = result.error
+                console.log(`[REJECT_OPS_S2] sendEmail result: success=${result.success}${result.error ? ` error=${result.error}` : ''}${result.stub ? ' (stub)' : ''}`)
             }
-        } catch (emailError) {
-            console.error('Stage 2 Ops rejection email failed:', emailError)
+        } catch (err) {
+            emailError = (err as Error)?.message || String(err)
+            console.error('[REJECT_OPS_S2] Email send threw:', err)
         }
 
         revalidatePath(`/dashboard/programs/${programId}`)
         revalidatePath('/dashboard')
-        return { success: true }
+        return { success: true, emailSent, emailError }
     } catch (error) {
         console.error('Stage 2 Ops rejection error:', error)
         return { success: false, error: "Failed to reject handover" }

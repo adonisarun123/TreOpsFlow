@@ -102,9 +102,15 @@ const stage1Schema = z.object({
     budgetNotes: z.string().optional(),
 
     // Logistics
+    venueName: z.string().optional(),
+    venueAddress: z.string().optional(),
     venuePOC: z.string().optional(),
     specialVenueReq: z.string().optional(),
     eventVendorDetails: z.string().optional(),
+
+    // Program Duration
+    programDurationHours: z.coerce.number().int().min(0).max(999).optional(),
+    programDurationMinutes: z.coerce.number().int().min(0).max(59, "Minutes must be 0–59").optional(),
 
     // Files
     agendaDocument: z.string().optional(),
@@ -158,9 +164,14 @@ export function Stage1Form({ program, isEdit = false }: { program?: Record<strin
             budgetMiscellaneous: program?.budgetMiscellaneous ?? '',
             budgetNotes: program?.budgetNotes || '',
 
+            venueName: program?.venueName || '',
+            venueAddress: program?.venueAddress || '',
             venuePOC: program?.venuePOC || '',
             specialVenueReq: program?.specialVenueReq || '',
             eventVendorDetails: program?.eventVendorDetails || '',
+
+            programDurationHours: program?.programDurationHours ?? '',
+            programDurationMinutes: program?.programDurationMinutes ?? '',
 
             agendaDocument: program?.agendaDocument || "",
             objectiveDocuments: program?.objectiveDocuments || "",
@@ -758,6 +769,53 @@ export function Stage1Form({ program, isEdit = false }: { program?: Record<strin
                             />
                         </div>
 
+                        <FormItem>
+                            <FormLabel>Program Duration</FormLabel>
+                            <FormDescription className="text-xs text-gray-500">
+                                Total run-time of the activity (e.g., 2 hrs 30 mins). Optional.
+                            </FormDescription>
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="programDurationHours"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    max="999"
+                                                    placeholder="Hours"
+                                                    value={field.value ?? ''}
+                                                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="programDurationMinutes"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    max="59"
+                                                    placeholder="Minutes"
+                                                    value={field.value ?? ''}
+                                                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </FormItem>
+
                         <FormField
                             control={form.control}
                             name="activitiesCommitted"
@@ -960,6 +1018,34 @@ export function Stage1Form({ program, isEdit = false }: { program?: Record<strin
                     <h3 className="text-lg font-semibold mb-5 text-orange-600 dark:text-orange-500">Logistics & Venue</h3>
 
                     <div className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="venueName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Venue Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g. Taj Resort & Convention Centre" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="venueAddress"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Venue Address</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Full address of the venue" className="h-20" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <FormField
                             control={form.control}
                             name="venuePOC"

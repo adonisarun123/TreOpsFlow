@@ -17,6 +17,16 @@ function DetailRow({ label, value, icon }: { label: string, value: React.ReactNo
     )
 }
 
+function formatDuration(hours?: number | null, minutes?: number | null): string | null {
+    const h = hours ?? 0
+    const m = minutes ?? 0
+    if (!h && !m) return null
+    const parts: string[] = []
+    if (h) parts.push(`${h} ${h === 1 ? 'hr' : 'hrs'}`)
+    if (m) parts.push(`${m} ${m === 1 ? 'min' : 'mins'}`)
+    return parts.join(' ')
+}
+
 export function Stage1Summary({ program }: { program: ProgramWithSalesOwner }) {
     if (!program) return <div>No program data available</div>
 
@@ -77,6 +87,7 @@ export function Stage1Summary({ program }: { program: ProgramWithSalesOwner }) {
                 </h4>
                 <div className="pl-4 border-l-2 border-muted">
                     <DetailRow label="Activity Type" value={program.activityType} />
+                    <DetailRow label="Program Duration" value={formatDuration(program.programDurationHours, program.programDurationMinutes)} icon={<Clock className="h-3.5 w-3.5" />} />
                     <DetailRow label="Objectives" value={program.objectives} />
                     <DetailRow label="Activities Committed" value={program.activitiesCommitted} />
                     {program.previousEngagement && (
@@ -118,6 +129,19 @@ export function Stage1Summary({ program }: { program: ProgramWithSalesOwner }) {
             <div className="space-y-1">
                 <h4 className="font-semibold text-muted-foreground text-[10px] uppercase tracking-widest mb-2">Venue & Vendor</h4>
                 <div className="pl-4 border-l-2 border-muted">
+                    <DetailRow label="Venue Name" value={program.venueName} />
+                    <DetailRow label="Venue Address" value={program.venueAddress} />
+                    {(program.venueName || program.venueAddress) && (
+                        <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${program.venueName || ''} ${program.venueAddress || ''}`.trim())}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1 mb-1"
+                        >
+                            <MapPin className="h-3.5 w-3.5" /> View on Google Maps
+                            <ExternalLink className="h-3 w-3" />
+                        </a>
+                    )}
                     <DetailRow label="Venue POC" value={program.venuePOC} />
                     <DetailRow label="Special Venue Requirements" value={program.specialVenueReq} />
                     <DetailRow label="Event Vendor Details" value={program.eventVendorDetails} />

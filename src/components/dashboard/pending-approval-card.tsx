@@ -65,7 +65,11 @@ export function PendingApprovalCard({ program, userRole }: PendingApprovalCardPr
             showToast(result.error, "error")
             throw new Error(result.error)
         } else {
-            showToast("Program rejected — Sales team notified via email", "success")
+            if (result.emailSent === false) {
+                showToast("Program rejected, but notification email failed to send. Please inform Sales manually.", "error")
+            } else {
+                showToast("Program rejected — Sales team notified via email", "success")
+            }
             setIsDismissed(true)
             router.refresh()
         }

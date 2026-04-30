@@ -133,7 +133,11 @@ export function Stage2AcceptedForm({
                 showToast(result.error, "error")
                 throw new Error(result.error)
             } else {
-                showToast("Handover rejected — returned to Sales", "success")
+                if (result.emailSent === false) {
+                    showToast("Handover rejected, but notification email failed to send. Please inform Sales manually.", "error")
+                } else {
+                    showToast("Handover rejected — returned to Sales", "success")
+                }
                 router.refresh()
             }
         } catch (error: unknown) {
