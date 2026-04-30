@@ -77,9 +77,13 @@ model ProgramCard {
   budgetMiscellaneous     Float?
   budgetNotes             String?
   
+  venueName               String?
+  venueAddress            String?
   venuePOC                String?
   specialVenueReq         String?
   eventVendorDetails      String?
+  programDurationHours    Int?
+  programDurationMinutes  Int?
   
   // Stage 1 Approval Tracking
   opsSPOCId               String?
