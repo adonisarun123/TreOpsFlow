@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, MapPin, Users, Building2, Phone, Mail, Clock, DollarSign, FileText, Activity, ExternalLink, CircleCheck } from "lucide-react"
 import { formatProgramDate } from "@/lib/date-utils"
 import type { ProgramWithSalesOwner } from "@/types"
+import { parseFileList } from "@/lib/file-list"
 
 function DetailRow({ label, value, icon }: { label: string, value: React.ReactNode, icon?: React.ReactNode }) {
     if (!value && value !== 0) return null
@@ -149,21 +150,41 @@ export function Stage1Summary({ program }: { program: ProgramWithSalesOwner }) {
             </div>
 
             {/* Documents */}
-            {(program.agendaDocument || program.objectiveDocuments) && (
+            {(() => {
+                const agendaFiles = parseFileList(program.agendaDocument)
+                const objectiveFiles = parseFileList(program.objectiveDocuments)
+                if (agendaFiles.length === 0 && objectiveFiles.length === 0) return null
+                return (
+                    <div className="space-y-1 mt-4">
+                        <h4 className="font-semibold text-muted-foreground text-[10px] uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                            <FileText className="h-3 w-3" /> Documents
+                        </h4>
+                        <div className="pl-4 border-l-2 border-muted space-y-2">
+                            {agendaFiles.map((f, i) => (
+                                <a key={`agenda-${i}`} href={f.url} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline group">
+                                    <ExternalLink className="h-3.5 w-3.5" /> {f.name || `Agenda Document ${agendaFiles.length > 1 ? i + 1 : ''}`.trim()}
+                                </a>
+                            ))}
+                            {objectiveFiles.map((f, i) => (
+                                <a key={`obj-${i}`} href={f.url} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline group">
+                                    <ExternalLink className="h-3.5 w-3.5" /> {f.name || `Objective Document ${objectiveFiles.length > 1 ? i + 1 : ''}`.trim()}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )
+            })()}
+
+            {/* Remarks & Additional Notes */}
+            {(program.salesRemark || program.salesAdditionalNotes) && (
                 <div className="space-y-1 mt-4">
-                    <h4 className="font-semibold text-muted-foreground text-[10px] uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                        <FileText className="h-3 w-3" /> Documents
-                    </h4>
-                    <div className="pl-4 border-l-2 border-muted space-y-2">
-                        {program.agendaDocument && (
-                            <a href={program.agendaDocument} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline group">
-                                <ExternalLink className="h-3.5 w-3.5" /> Agenda Document
-                            </a>
+                    <h4 className="font-semibold text-muted-foreground text-[10px] uppercase tracking-widest mb-2">Remarks & Additional Notes</h4>
+                    <div className="pl-4 border-l-2 border-muted space-y-3">
+                        {program.salesRemark && (
+                            <DetailRow label="Remark" value={<span className="whitespace-pre-wrap">{program.salesRemark}</span>} />
                         )}
-                        {program.objectiveDocuments && (
-                            <a href={program.objectiveDocuments} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline group">
-                                <ExternalLink className="h-3.5 w-3.5" /> Objective Documents
-                            </a>
+                        {program.salesAdditionalNotes && (
+                            <DetailRow label="Additional Notes" value={<span className="whitespace-pre-wrap">{program.salesAdditionalNotes}</span>} />
                         )}
                     </div>
                 </div>

@@ -25,7 +25,7 @@ import { createProgram, updateStage1 } from "@/app/actions/stage1"
 import { useRouter } from "next/navigation"
 import { Loader2, ArrowRight, CalendarIcon, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { FileUpload } from "@/components/ui/file-upload"
+import { MultiFileUpload } from "@/components/ui/multi-file-upload"
 import { showToast } from "@/components/ui/toaster"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -115,6 +115,10 @@ const stage1Schema = z.object({
     // Files
     agendaDocument: z.string().optional(),
     objectiveDocuments: z.string().optional(),
+
+    // Remarks
+    salesRemark: z.string().optional(),
+    salesAdditionalNotes: z.string().optional(),
 }).refine(data => data.maxPax >= data.minPax, {
     message: "Max pax must be greater than or equal to min pax",
     path: ["maxPax"]
@@ -175,6 +179,9 @@ export function Stage1Form({ program, isEdit = false }: { program?: Record<strin
 
             agendaDocument: program?.agendaDocument || "",
             objectiveDocuments: program?.objectiveDocuments || "",
+
+            salesRemark: program?.salesRemark || "",
+            salesAdditionalNotes: program?.salesAdditionalNotes || "",
         },
     })
 
@@ -1100,20 +1107,17 @@ export function Stage1Form({ program, isEdit = false }: { program?: Record<strin
                             name="agendaDocument"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Agenda Document (Optional)</FormLabel>
+                                    <FormLabel>Agenda Documents (Optional)</FormLabel>
                                     <FormControl>
-                                        <FileUpload
-                                            onUploadComplete={field.onChange}
-                                            currentFile={field.value}
-                                            label="Upload Agenda"
+                                        <MultiFileUpload
+                                            onChange={field.onChange}
+                                            value={field.value}
+                                            label="Upload Agenda (multiple allowed)"
                                         />
                                     </FormControl>
                                     <FormDescription className="text-xs text-gray-500">
-                                        Can be uploaded later — agenda is sometimes finalized a day before the program
+                                        You can upload multiple files. Agenda is sometimes finalized a day before the program.
                                     </FormDescription>
-                                    {field.value && (
-                                        <a href={field.value} target="_blank" className="text-sm text-blue-600 underline block mt-2">View File</a>
-                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -1126,15 +1130,50 @@ export function Stage1Form({ program, isEdit = false }: { program?: Record<strin
                                 <FormItem>
                                     <FormLabel>Objective Documents (Optional)</FormLabel>
                                     <FormControl>
-                                        <FileUpload
-                                            onUploadComplete={field.onChange}
-                                            currentFile={field.value}
-                                            label="Upload Objectives"
+                                        <MultiFileUpload
+                                            onChange={field.onChange}
+                                            value={field.value}
+                                            label="Upload Objectives (multiple allowed)"
                                         />
                                     </FormControl>
-                                    {field.value && (
-                                        <a href={field.value} target="_blank" className="text-sm text-blue-600 underline block mt-2">View File</a>
-                                    )}
+                                    <FormDescription className="text-xs text-gray-500">
+                                        Upload one or more supporting documents.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+
+                {/* Section 6: Remarks & Additional Notes */}
+                <div className="border border-border p-6 rounded-xl bg-card shadow-sm mt-8">
+                    <h3 className="text-lg font-semibold mb-5 text-indigo-600 dark:text-indigo-400">Remarks & Additional Notes</h3>
+
+                    <div className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="salesRemark"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Remark</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Any remark Sales wants to share..." className="h-24" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="salesAdditionalNotes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Additional Notes</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Any additional notes, context or special callouts..." className="h-28" {...field} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}

@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, Save, ArrowRight, ClipboardCheck, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { showToast } from "@/components/ui/toaster"
-import { FileUpload } from "@/components/ui/file-upload"
+import { MultiFileUpload } from "@/components/ui/multi-file-upload"
 import type { ProgramCard } from "@/types"
 
 const stage3Schema = z.object({
@@ -231,9 +231,8 @@ export function Stage3FeasibilityForm({
                             <FormItem>
                                 <FormLabel className="text-sm">Logistics List (Doc Upload)</FormLabel>
                                 <FormControl>
-                                    <FileUpload onUploadComplete={field.onChange} currentFile={field.value} label="Upload Logistics List" disabled={isReadOnly} />
+                                    <MultiFileUpload onChange={field.onChange} value={field.value} label="Upload Logistics List (multiple allowed)" disabled={isReadOnly} />
                                 </FormControl>
-                                {field.value && <a href={field.value} target="_blank" className="text-xs text-blue-600 underline">View File</a>}
                             </FormItem>
                         )} />
 

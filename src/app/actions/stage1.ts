@@ -46,6 +46,8 @@ const STAGE1_FIELD_LABELS: Record<string, string> = {
     programDurationMinutes: 'Program Duration (Minutes)',
     agendaDocument: 'Agenda Document',
     objectiveDocuments: 'Objective Documents',
+    salesRemark: 'Remark',
+    salesAdditionalNotes: 'Additional Notes',
 }
 
 function formatFieldValue(key: string, val: unknown): string {
@@ -134,6 +136,10 @@ export async function createProgram(data: Record<string, any>) {
                 // Files
                 agendaDocument: data.agendaDocument,
                 objectiveDocuments: data.objectiveDocuments,
+
+                // Remarks
+                salesRemark: data.salesRemark,
+                salesAdditionalNotes: data.salesAdditionalNotes,
             }
         })
 
@@ -281,6 +287,8 @@ export async function updateStage1(id: string, data: Record<string, any>) {
             programDurationMinutes: data.programDurationMinutes ? parseInt(data.programDurationMinutes) : null,
             agendaDocument: data.agendaDocument,
             objectiveDocuments: data.objectiveDocuments,
+            salesRemark: data.salesRemark,
+            salesAdditionalNotes: data.salesAdditionalNotes,
         }
 
         // Detect changes across ALL Stage 1 fields

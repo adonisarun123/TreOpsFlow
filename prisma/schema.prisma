@@ -62,8 +62,12 @@ model ProgramCard {
   activityType            String?  // "Outdoor", "Indoor", "Mixed", "Virtual", "Hybrid"
   activitiesCommitted     String?  // JSON string
   objectives              String?  // Text
-  agendaDocument          String?  // URL/Path (optional - can be added later)
-  objectiveDocuments      String?  // JSON array of file URLs
+  agendaDocument          String?  // URL/Path or JSON array of file entries (multi-upload)
+  objectiveDocuments      String?  // URL/Path or JSON array of file entries (multi-upload)
+
+  // Sales Remarks (optional free-text fields)
+  salesRemark             String?
+  salesAdditionalNotes    String?
   
   deliveryBudget          Float?
   billingDetails          String?
